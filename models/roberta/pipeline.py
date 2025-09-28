@@ -1,0 +1,130 @@
+
+import os
+import pandas as pd
+import torch
+from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
+from datasets import Dataset
+from loguru import logger
+from sklearn.metrics import accuracy_score
+from src.pipeline import PipelineStep, PipelineContext
+
+class RobertaDataPreprocessor(PipelineStep):
+    def run(self, context: PipelineContext) -> PipelineContext:
+        logger.info("Preprocessing data for RoBERTa model...")
+        train_dataset = context.get("train_dataset")
+        hyperparameters = context.get("hyperparameters")
+        
+        labels = train_dataset['Sentiment'].unique().tolist()
+        label2id = {label: i for i, label in enumerate(labels)}
+        id2label = {i: label for i, label in enumerate(labels)}
+        
+        train_dataset['label'] = train_dataset['Sentiment'].map(label2id)
+        
+        model_name = hyperparameters.get("model_name", "roberta-base")
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
+        
+        hf_dataset = Dataset.from_pandas(train_dataset)
+
+        def tokenize_function(examples):
+            return tokenizer(examples["Sentence"], padding="max_length", truncation=True, max_length=512)
+
+        tokenized_dataset = hf_dataset.map(tokenize_function, batched=True)
+        tokenized_dataset = tokenized_dataset.remove_columns([col for col in train_dataset.columns if col not in ['label', 'input_ids', 'attention_mask']])
+        tokenized_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'label'])
+        
+        context.set("tokenized_dataset", tokenized_dataset)
+        context.set("tokenizer", tokenizer)
+        context.set("label2id", label2id)
+        context.set("id2label", id2label)
+        logger.info("Data preprocessing complete.")
+        return context
+
+class RobertaTrainer(PipelineStep):
+    def run(self, context: PipelineContext) -> PipelineContext:
+        logger.info("Training RoBERTa model...")
+        output_dir = context.get("output_dir")
+        hyperparameters = context.get("hyperparameters")
+        tokenized_dataset = context.get("tokenized_dataset")
+        tokenizer = context.get("tokenizer")
+        label2id = context.get("label2id")
+        id2label = context.get("id2label")
+
+        model_name = hyperparameters.get("model_name", "roberta-base")
+        model = AutoModelForSequenceClassification.from_pretrained(
+            model_name,
+            num_labels=len(label2id),
+            label2id=label2id,
+            id2label=id2label
+        )
+
+        default_training_args = {
+            "output_dir": output_dir,
+            "num_train_epochs": 1,
+            "per_device_train_batch_size": 8,
+            "gradient_accumulation_steps": 1,
+            "learning_rate": 2e-5,
+            "fp16": torch.cuda.is_available(),
+            "logging_steps": 10,
+            "save_total_limit": 2,
+            "report_to": "none",
+            "dataloader_pin_memory": False
+        }
+        
+        training_args_dict = {**default_training_args, **hyperparameters.get("training_arguments", {})}
+        training_arguments = TrainingArguments(**training_args_dict)
+
+        def compute_metrics(p):
+            predictions, labels = p
+            predictions = predictions.argmax(axis=1)
+            return {"accuracy": accuracy_score(labels, predictions)}
+
+        trainer = Trainer(
+            model=model,
+            args=training_arguments,
+            train_dataset=tokenized_dataset,
+            compute_metrics=compute_metrics
+        )
+
+        trainer.train()
+        
+        trainer.save_model(output_dir)
+        tokenizer.save_pretrained(output_dir)
+        logger.info(f"Model and tokenizer saved to {output_dir}")
+        return context
+
+class RobertaPredictor(PipelineStep):
+    def run(self, context: PipelineContext) -> PipelineContext:
+        logger.info("Running RoBERTa predictions...")
+        model_dir = context.get("model_dir")
+        data_to_predict = context.get("data_to_predict")
+        output_dir = context.get("output_dir")
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        tokenizer = AutoTokenizer.from_pretrained(model_dir)
+        model = AutoModelForSequenceClassification.from_pretrained(model_dir)
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model.to(device)
+
+        id2label = model.config.id2label
+        predictions = []
+
+        for index, row in data_to_predict.iterrows():
+            sentence = row['Sentence']
+            inputs = tokenizer(sentence, return_tensors="pt", padding="max_length", truncation=True, max_length=512).to(device)
+            
+            with torch.no_grad():
+                outputs = model(**inputs)
+            
+            logits = outputs.logits
+            predicted_class_id = torch.argmax(logits, dim=1).item()
+            predicted_sentiment = id2label[predicted_class_id]
+            predictions.append(predicted_sentiment)
+
+        output_df = data_to_predict.copy()
+        output_df['Predicted_Sentiment'] = predictions
+        
+        output_file = os.path.join(output_dir, "predictions.csv")
+        output_df.to_csv(output_file, index=False)
+        logger.info(f"Predictions saved to {output_file}")
+        return context

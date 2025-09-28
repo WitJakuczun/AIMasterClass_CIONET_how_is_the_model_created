@@ -18,7 +18,15 @@ def load_model_from_config(model_config) -> ModelInterface:
     model_path = model_config.model_path
     module_path = os.path.join(model_path, "model.py")
     
-    spec = importlib.util.spec_from_file_location("model", module_path)
+    # Construct a proper module name for handling relative imports
+    # Assuming module_path is like /path/to/project/models/gemma/model.py
+    # We want a module name like models.gemma.model
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    relative_path = os.path.relpath(module_path, project_root)
+    # Remove .py extension and replace / with .
+    module_full_name = relative_path.replace(os.sep, '.')[:-3] 
+    
+    spec = importlib.util.spec_from_file_location(module_full_name, module_path)
     if spec is None:
         raise ImportError(f"Could not load spec for module at path {module_path}")
     

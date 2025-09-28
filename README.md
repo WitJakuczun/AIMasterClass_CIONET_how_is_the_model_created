@@ -1,6 +1,11 @@
-# Fine-tuning Gemma model for sentiment analysis
+# Fine-tuning NLP models for sentiment analysis
 
-This project provides a CLI application to fine-tune a Gemma model for sentiment analysis. It uses a cross-validation strategy to train and evaluate the model. The architecture has been refactored for modularity, testability, and extensibility, incorporating Dependency Injection, a robust Experiment Tracking System, ML Pipeline Abstractions, and Decentralized Model Configuration.
+This project provides a CLI application to fine-tune a series of NLP models for sentiment analysis. It uses a cross-validation strategy to train and evaluate the model. Currently the code covers the following models:
+- Gemma3
+- Roberta
+- Bert-small
+- Bert-micro
+- SVM
 
 ## Workflow
 
@@ -13,15 +18,6 @@ The application workflow is designed around a clean separation of concerns, orch
 5.  **Evaluate**: Evaluate the predictions, calculate metrics, and store them in a structured `results.json` file for persistent tracking.
 6.  **Run Experiment**: Execute a full experiment, encompassing all the steps above, with comprehensive result tracking.
 
-## Code Guideline
-
-*   Follow Pep8
-*   Use loguru for logging
-*   Use typer for CLI arguments
-*   **Dependency Injection**: Core components are injected into the `Application` class.
-*   **ML Pipelines**: Model training and prediction logic are abstracted into modular `PipelineStep`s.
-*   **Decentralized Configuration**: Model configurations are loaded dynamically from `model_configs/*.json`.
-*   **Experiment Tracking**: Experiments and their results are managed by dedicated services and stored persistently.
 
 ## Listing Available Models
 

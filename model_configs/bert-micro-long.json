@@ -1,5 +1,5 @@
 {
-    "model_path": "models/roberta",
+    "model_path": "models/roberta/model.py",
     "model_name": "boltuix/bert-micro",
     "training_arguments": {
         "num_train_epochs": 50,

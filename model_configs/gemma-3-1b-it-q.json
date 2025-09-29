@@ -1,5 +1,5 @@
 {
-    "model_path": "models/gemma_gguf",
+    "model_path": "models/gemma_gguf/model.py",
     "model_name": "google/gemma-3-1b-it-qat-q4_0-gguf",
     "training_arguments": {
         "num_train_epochs": 1,

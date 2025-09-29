@@ -76,5 +76,31 @@ def run_experiment_command(experiment_id: str = typer.Option(..., help="Unique I
     """
     app.run_experiment(experiment_id, model_config_name, model_output_dir, prediction_output_dir)
 
+@typer_app.command(name="train-final")
+def train_final_command(experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
+                        model_config_name: str = typer.Option(..., help="Name of the model config to use."),
+                        model_output_dir: str = typer.Option(str(paths.trained_models), help="Directory to save the final model.")):
+    """
+    Train a final model on the entire training dataset.
+    """
+    app.train_final_model(experiment_id, model_config_name, model_output_dir)
+
+@typer_app.command(name="predict-new")
+def predict_new_command(model_path: str = typer.Option(..., help="Path to the trained model."),
+                        input_file: str = typer.Option(..., help="Path to the input CSV file for predictions."),
+                        output_file: str = typer.Option(..., help="Path to save the predictions.")):
+    """
+    Make predictions using a trained model on new data.
+    """
+    app.predict_new_data(model_path, input_file, output_file)
+
+@typer_app.command(name="compare-models")
+def compare_models_command(experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
+                           output_file: str = typer.Option(None, help="Path to save the comparison report.")):
+    """
+    Compare the performance of different models for a given experiment.
+    """
+    app.compare_models(experiment_id, output_file)
+
 if __name__ == "__main__":
     typer_app()

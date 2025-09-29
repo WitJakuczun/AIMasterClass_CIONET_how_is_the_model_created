@@ -7,11 +7,14 @@ from datasets import Dataset
 from loguru import logger
 from sklearn.metrics import accuracy_score
 from src.pipeline import PipelineStep, PipelineContext
+from packaging import version
+import transformers
 
 class RobertaDataPreprocessor(PipelineStep):
     def run(self, context: PipelineContext) -> PipelineContext:
         logger.info("Preprocessing data for RoBERTa model...")
         train_dataset = context.get("train_dataset")
+        val_dataset = context.get("val_dataset")
         hyperparameters = context.get("hyperparameters")
         
         labels = train_dataset['Sentiment'].unique().tolist()
@@ -33,6 +36,17 @@ class RobertaDataPreprocessor(PipelineStep):
         tokenized_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'label'])
         
         context.set("tokenized_dataset", tokenized_dataset)
+
+        if val_dataset is not None:
+            logger.info("Preprocessing validation data...")
+            val_dataset['label'] = val_dataset['Sentiment'].map(label2id)
+            hf_val_dataset = Dataset.from_pandas(val_dataset)
+            tokenized_val_dataset = hf_val_dataset.map(tokenize_function, batched=True)
+            tokenized_val_dataset = tokenized_val_dataset.remove_columns([col for col in val_dataset.columns if col not in ['label', 'input_ids', 'attention_mask']])
+            tokenized_val_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'label'])
+            context.set("tokenized_val_dataset", tokenized_val_dataset)
+            logger.info("Validation data preprocessing complete.")
+
         context.set("tokenizer", tokenizer)
         context.set("label2id", label2id)
         context.set("id2label", id2label)
@@ -45,6 +59,7 @@ class RobertaTrainer(PipelineStep):
         output_dir = context.get("output_dir")
         hyperparameters = context.get("hyperparameters")
         tokenized_dataset = context.get("tokenized_dataset")
+        tokenized_val_dataset = context.get("tokenized_val_dataset")
         tokenizer = context.get("tokenizer")
         label2id = context.get("label2id")
         id2label = context.get("id2label")
@@ -69,7 +84,14 @@ class RobertaTrainer(PipelineStep):
             "report_to": "none",
             "dataloader_pin_memory": False
         }
-        
+
+        if tokenized_val_dataset is not None:
+            if version.parse(transformers.__version__) >= version.parse("4.6.0"):
+                default_training_args["eval_strategy"] = "steps"
+                default_training_args["eval_steps"] = 10
+            else:
+                logger.warning("'evaluation_strategy' not supported in this version of transformers. Skipping evaluation.")
+
         training_args_dict = {**default_training_args, **hyperparameters.get("training_arguments", {})}
         training_arguments = TrainingArguments(**training_args_dict)
 
@@ -82,6 +104,7 @@ class RobertaTrainer(PipelineStep):
             model=model,
             args=training_arguments,
             train_dataset=tokenized_dataset,
+            eval_dataset=tokenized_val_dataset,
             compute_metrics=compute_metrics
         )
 

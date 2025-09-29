@@ -1,5 +1,5 @@
 {
-    "model_path": "models/gemma",
+    "model_path": "models/gemma/model.py",
     "model_name": "google/gemma-3-1b-it",
     "training_arguments": {
         "num_train_epochs": 1,

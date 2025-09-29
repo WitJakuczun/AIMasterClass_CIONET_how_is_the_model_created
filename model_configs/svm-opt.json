@@ -1,0 +1,17 @@
+{
+    "model_path": "models/svm/model.py",
+    "model_name": "svm-countvectorizer",
+    "training_arguments": {
+        "C": 1.0,
+        "kernel": "linear",
+        "gamma": "scale"
+    },
+    "hyperparameter_search": {
+        "n_iter": 10,
+        "param_distributions": {
+            "clf__C": [0.1, 1, 10, 100],
+            "clf__gamma": ["scale", "auto", 0.001, 0.01, 0.1, 1],
+            "clf__kernel": ["linear", "rbf", "poly"]
+        }
+    }
+}

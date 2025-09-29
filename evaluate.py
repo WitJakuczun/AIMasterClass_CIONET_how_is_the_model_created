@@ -36,26 +36,37 @@ def evaluate(predictions_file: str, ground_truth_file: str) -> dict:
 
     return metrics
 
-def compare_models(experiment_id: str, output_file: str = None):
+def compare_models(experiment_id: str, output_file: str = None, run_type: str = None):
     """
     Compare the performance of different models for a given experiment.
     """
     from config import paths
     experiment_path = os.path.join(paths.experiments, experiment_id)
-    results_file = os.path.join(experiment_path, "results.json")
-
-    if not os.path.exists(results_file):
-        logger.warning(f"No results file found for experiment '{experiment_id}'.")
-        return
-
-    with open(results_file, 'r') as f:
-        data = json.load(f)
+    
+    run_types_to_process = []
+    if run_type:
+        run_types_to_process.append(run_type)
+    else:
+        run_types_to_process.extend(["backtesting", "performance_estimation"])
 
     all_results = []
-    for fold, models in data.items():
-        for model_name, metrics in models.items():
-            row = {"model_name": model_name, "fold": fold, **metrics}
-            all_results.append(row)
+    for rt in run_types_to_process:
+        results_file = os.path.join(experiment_path, rt, "results.json")
+        if not os.path.exists(results_file):
+            logger.warning(f"No results file found for run type '{rt}' in experiment '{experiment_id}'.")
+            continue
+
+        with open(results_file, 'r') as f:
+            data = json.load(f)
+
+        for fold, models in data.items():
+            for model_name, metrics in models.items():
+                row = {"run_type": rt, "model_name": model_name, "fold": fold, **metrics}
+                all_results.append(row)
+
+    if not all_results:
+        logger.warning(f"No results found for experiment '{experiment_id}'.")
+        return
 
     results_df = pd.DataFrame(all_results)
 
@@ -64,14 +75,26 @@ def compare_models(experiment_id: str, output_file: str = None):
         if col in results_df.columns:
             results_df[col] = pd.to_numeric(results_df[col], errors='coerce')
 
-    # Drop non-numeric columns before aggregation
-    summary_df = results_df.drop(columns=['fold']).groupby('model_name').agg(['mean', 'std']).reset_index()
-
     # Display results
     logger.info(f"--- Model Comparison for Experiment '{experiment_id}' ---")
-    logger.info(summary_df.to_string())
+    
+    for rt, group_df in results_df.groupby('run_type'):
+        logger.info(f"\n--- Run Type: {rt} ---")
+        
+        if rt == "backtesting":
+            if group_df['fold'].nunique() > 1: # CV strategy
+                per_fold_df = group_df.drop(columns=['run_type']).pivot_table(index=['model_name', 'fold'], values=['accuracy', 'precision', 'recall', 'f1_score']).reset_index()
+                logger.info(f"Per-fold results for {rt}:\n" + per_fold_df.to_string())
+                logger.info("\nSummary (mean and std across folds):")
+                summary_df = group_df.drop(columns=['fold', 'run_type']).groupby('model_name').agg(['mean', 'std']).reset_index()
+            else: # Train-val strategy
+                logger.info(f"Summary for {rt} (train-val strategy):")
+                summary_df = group_df.drop(columns=['fold', 'run_type']).groupby('model_name').agg(['mean']).reset_index()
+        else:
+            summary_df = group_df.drop(columns=['fold', 'run_type']).groupby('model_name').agg(['mean', 'std']).reset_index()
+        logger.info("\n" + summary_df.to_string())
 
     if output_file:
-        summary_df.to_csv(output_file, index=False)
+        results_df.to_csv(output_file, index=False)
         logger.info(f"Comparison report saved to {output_file}")
 

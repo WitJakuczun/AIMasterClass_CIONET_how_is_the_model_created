@@ -1,10 +1,9 @@
-
 import typer
 from models_config import MODELS
 from loguru import logger
 from config import paths
-from src import runner
 from src.app import Application
+from src import runner
 
 typer_app = typer.Typer()
 
@@ -18,21 +17,33 @@ def list_models_command():
     for model_name in MODELS.keys():
         logger.info(f"- {model_name}")
 
-@typer_app.command(name="generate-cv-splits")
-def generate_cv_splits_command(n_splits: int = typer.Option(5, help="Number of splits for cross-validation."),
-                                experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
-                                input_file: str = typer.Option(str(paths.all_train_csv), help="Path to the input CSV file."),
-                                target_column: str = typer.Option("Sentiment", help="Column to stratify on."),
-                                test_size: float = typer.Option(0.2, help="Proportion of the dataset to include in the test split.")):
-    app.generate_cv_splits(n_splits, experiment_id, input_file, target_column, test_size)
+@typer_app.command(name="generate-splits")
+def generate_splits_command(experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
+                            input_file: str = typer.Option(str(paths.all_train_csv), help="Path to the input CSV file."),
+                            target_column: str = typer.Option("Sentiment", help="Column to stratify on."),
+                            test_size: float = typer.Option(0.2, help="Proportion of the dataset for the hold-out test set."),
+                            backtesting_strategy: str = typer.Option("cv", help="Backtesting strategy: 'cv' or 'train-val'."),
+                            cv_folds: int = typer.Option(5, help="Number of folds for cross-validation."),
+                            backtesting_val_size: float = typer.Option(0.15, help="Validation set size for the backtesting train/val split."),
+                            perf_estimation_val_size: float = typer.Option(0.1, help="Validation set size for the performance estimation split."),
+                            final_model_val_size: float = typer.Option(0.1, help="Validation set size for the final model training split.")):
+    app.generate_splits(experiment_id, input_file, target_column, test_size, backtesting_strategy, cv_folds, backtesting_val_size, perf_estimation_val_size, final_model_val_size)
 
-@typer_app.command(name="generate-split")
-def generate_split_command(experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
-                           input_file: str = typer.Option(str(paths.all_train_csv), help="Path to the input CSV file."),
-                           target_column: str = typer.Option("Sentiment", help="Column to stratify on."),
-                           train_ratio: float = typer.Option(0.7, help="Proportion of the dataset for training."),
-                           val_ratio: float = typer.Option(0.15, help="Proportion of the dataset for validation.")):
-    app.generate_split(experiment_id, input_file, target_column, train_ratio, val_ratio)
+@typer_app.command(name="run-backtesting")
+def run_backtesting_command(experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
+                            model_config_name: str = typer.Option(..., help="Name of the model config to use.")):
+    app.run_backtesting(experiment_id, model_config_name)
+
+@typer_app.command(name="estimate-performance")
+def estimate_performance_command(experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
+                                 model_config_name: str = typer.Option(..., help="Name of the model config to use.")):
+    app.estimate_performance(experiment_id, model_config_name)
+
+@typer_app.command(name="train-final-model")
+def train_final_model_command(experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
+                              model_config_name: str = typer.Option(..., help="Name of the model config to use."),
+                              model_output_dir: str = typer.Option(str(paths.trained_models), help="Directory to save the final model.")):
+    app.train_final_model(experiment_id, model_config_name, model_output_dir)
 
 @typer_app.command(name="train")
 def train_command(experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
@@ -76,15 +87,6 @@ def run_experiment_command(experiment_id: str = typer.Option(..., help="Unique I
     """
     app.run_experiment(experiment_id, model_config_name, model_output_dir, prediction_output_dir)
 
-@typer_app.command(name="train-final")
-def train_final_command(experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
-                        model_config_name: str = typer.Option(..., help="Name of the model config to use."),
-                        model_output_dir: str = typer.Option(str(paths.trained_models), help="Directory to save the final model.")):
-    """
-    Train a final model on the entire training dataset.
-    """
-    app.train_final_model(experiment_id, model_config_name, model_output_dir)
-
 @typer_app.command(name="predict-new")
 def predict_new_command(model_path: str = typer.Option(..., help="Path to the trained model."),
                         input_file: str = typer.Option(..., help="Path to the input CSV file for predictions."),
@@ -96,11 +98,12 @@ def predict_new_command(model_path: str = typer.Option(..., help="Path to the tr
 
 @typer_app.command(name="compare-models")
 def compare_models_command(experiment_id: str = typer.Option(..., help="Unique ID for the experiment."),
-                           output_file: str = typer.Option(None, help="Path to save the comparison report.")):
+                           output_file: str = typer.Option(None, help="Path to save the comparison report."),
+                           run_type: str = typer.Option(None, help="Run type to compare: 'backtesting' or 'performance_estimation'.")):
     """
     Compare the performance of different models for a given experiment.
     """
-    app.compare_models(experiment_id, output_file)
+    app.compare_models(experiment_id, output_file, run_type)
 
 if __name__ == "__main__":
     typer_app()

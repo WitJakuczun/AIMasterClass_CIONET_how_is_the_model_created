@@ -11,10 +11,15 @@ wheels/
 
 #Data
 experiments/
+!experiments/.gitkeep
 predictions/
+!predictions/.gitkeep
 trained_models/
+!trained_models/.gitkeep
 data/
+!data/.gitkeep
 predictions/
+!predictions/.gitkeep
 
 # gemini cli files
 GEMINI.md

@@ -9,7 +9,7 @@ class RobertaModel(ModelInterface):
     A wrapper for the RoBERTa model that implements the ModelInterface using a pipeline.
     """
 
-    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str):
+    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pd.DataFrame = None):
         """
         Trains a RoBERTa model using a pipeline.
         """
@@ -22,6 +22,7 @@ class RobertaModel(ModelInterface):
         context.set("train_dataset", train_dataset)
         context.set("hyperparameters", hyperparameters)
         context.set("output_dir", output_dir)
+        context.set("val_dataset", val_dataset)
         
         training_pipeline.run(context)
 

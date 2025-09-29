@@ -1,6 +1,8 @@
 
+
 from src import runner
 from src.generate_CV_splits import generate_cv_splits, generate_split
+from evaluate import compare_models
 
 class Application:
     def __init__(self, runner_module):
@@ -23,3 +25,13 @@ class Application:
 
     def generate_split(self, experiment_id: str, input_file: str, target_column: str, train_ratio: float, val_ratio: float):
         generate_split(experiment_id, input_file, target_column, train_ratio, val_ratio)
+
+    def compare_models(self, experiment_id: str, output_file: str):
+        compare_models(experiment_id, output_file)
+
+    def train_final_model(self, experiment_id: str, model_config_name: str, model_output_dir: str):
+        self.runner.train_final_model(experiment_id, model_config_name, model_output_dir)
+
+    def predict_new_data(self, model_path: str, input_file: str, output_file: str):
+        self.runner.predict_new_data(model_path, input_file, output_file)
+

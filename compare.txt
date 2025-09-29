@@ -1,0 +1,4 @@
+model_name,accuracy,accuracy,precision,precision,recall,recall,f1_score,f1_score
+,mean,std,mean,std,mean,std,mean,std
+svm-base,0.6335616438356164,,0.6306299813079365,,0.6335616438356164,,0.6318830608992502,
+svm-opt,0.6883561643835616,,0.6621754113896786,,0.6883561643835616,,0.6687572030245676,

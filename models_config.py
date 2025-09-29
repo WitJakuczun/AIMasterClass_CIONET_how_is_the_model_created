@@ -1,14 +1,18 @@
 
 import os
 import json
-from dataclasses import dataclass, field
 from typing import Dict, Any, Optional
+from pydantic import BaseModel, Field, FilePath
 
-@dataclass
-class ModelConfig:
-    model_path: str
+class HyperparameterSearch(BaseModel):
+    n_iter: int = Field(..., gt=0)
+    param_distributions: Dict[str, Any]
+
+class ModelConfig(BaseModel):
+    model_path: FilePath
     model_name: Optional[str] = None
-    training_arguments: Dict[str, Any] = field(default_factory=dict)
+    training_arguments: Dict[str, Any] = {}
+    hyperparameter_search: Optional[HyperparameterSearch] = None
 
 MODELS: Dict[str, ModelConfig] = {}
 
@@ -24,19 +28,7 @@ if os.path.exists(MODEL_CONFIGS_DIR):
                 with open(config_path, 'r') as f:
                     config_data = json.load(f)
                 
-                # Ensure all required fields are present, provide defaults for optional ones
-                model_path = config_data.get("model_path")
-                if not model_path:
-                    raise ValueError(f"model_path missing in {config_file}")
-
-                model_name = config_data.get("model_name")
-                training_arguments = config_data.get("training_arguments", {})
-
-                MODELS[config_name] = ModelConfig(
-                    model_path=model_path,
-                    model_name=model_name,
-                    training_arguments=training_arguments
-                )
+                MODELS[config_name] = ModelConfig(**config_data)
             except (IOError, json.JSONDecodeError, ValueError) as e:
                 print(f"Error loading model configuration from {config_file}: {e}")
 else:

@@ -4,9 +4,11 @@ import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
+from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
 import joblib
 from loguru import logger
 import sys
+import io
 from src.model_interface import ModelInterface
 
 class SVMModel(ModelInterface):
@@ -14,7 +16,7 @@ class SVMModel(ModelInterface):
     A wrapper for the SVM model that implements the ModelInterface.
     """
 
-    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str):
+    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pd.DataFrame = None):
         """
         Trains an SVM model with CountVectorizer.
 
@@ -23,6 +25,7 @@ class SVMModel(ModelInterface):
                            It is expected to have 'Sentence' and 'Sentiment' columns.
             hyperparameters: A dictionary of hyperparameters for the SVM model.
             output_dir: The directory where the trained model will be saved.
+            val_dataset: A pandas DataFrame containing the validation data.
         """
 
         # --- 0. Setup Logging ---
@@ -38,20 +41,50 @@ class SVMModel(ModelInterface):
         # --- 1. Create the pipeline ---
         logger.info("Creating SVM pipeline...")
         
-        # Get hyperparameters for SVC
-        svc_hyperparameters = hyperparameters.get('training_arguments', {})
-        
         pipeline = Pipeline([
             ('vect', CountVectorizer()),
-            ('clf', SVC(**svc_hyperparameters)),
+            ('clf', SVC()),
         ])
 
         # --- 2. Train the model ---
-        logger.info("Training the SVM model...")
         X_train = train_dataset['Sentence']
         y_train = train_dataset['Sentiment']
-        
-        pipeline.fit(X_train, y_train)
+
+        if val_dataset is not None and hyperparameters.get('hyperparameter_search'):
+            logger.info("Validation dataset provided and hyperparameter_search config found, performing randomized search...")
+            
+            search_config = hyperparameters['hyperparameter_search']
+            param_distributions = search_config.param_distributions
+            n_iter = search_config.n_iter
+            
+            # Create a RandomizedSearchCV object
+            random_search = RandomizedSearchCV(pipeline, param_distributions, n_iter=n_iter, cv=3, n_jobs=-1, verbose=2, random_state=42)
+            
+            # --- Redirect stdout to loguru ---
+            old_stdout = sys.stdout
+            sys.stdout = io.StringIO()
+            
+            try:
+                # Fit the random search to the data
+                random_search.fit(X_train, y_train)
+                # Capture and log the output
+                log_output = sys.stdout.getvalue()
+                if log_output:
+                    logger.info(f"RandomizedSearchCV output:\n{log_output.strip()}")
+            finally:
+                # Restore stdout
+                sys.stdout = old_stdout
+            # --- End Redirect stdout to loguru ---
+            
+            logger.info(f"Best parameters found: {random_search.best_params_}")
+            pipeline = random_search.best_estimator_
+        else:
+            logger.info("Training the SVM model with predefined hyperparameters...")
+            # Get hyperparameters for SVC
+            svc_hyperparameters = hyperparameters.get('training_arguments', {})
+            pipeline.set_params(**{'clf__' + k: v for k, v in svc_hyperparameters.items()})
+            pipeline.fit(X_train, y_train)
+
         logger.info("Training finished.")
 
         # --- 3. Save the Model ---

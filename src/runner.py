@@ -1,6 +1,7 @@
 
 import os
 import numpy as np
+import pandas as pd
 from loguru import logger
 from models_config import MODELS
 from config import paths
@@ -15,20 +16,18 @@ def load_model_from_config(model_config) -> ModelInterface:
     """
     Dynamically loads a model class from a given model config.
     """
-    model_path = model_config.model_path
-    module_path = os.path.join(model_path, "model.py")
+    relative_model_path = model_config.model_path
+    model_path = os.path.abspath(relative_model_path)
+    logger.info(f"Attempting to load model from: {model_path}")
     
     # Construct a proper module name for handling relative imports
-    # Assuming module_path is like /path/to/project/models/gemma/model.py
-    # We want a module name like models.gemma.model
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-    relative_path = os.path.relpath(module_path, project_root)
-    # Remove .py extension and replace / with .
-    module_full_name = relative_path.replace(os.sep, '.')[:-3] 
+    relative_path = os.path.relpath(model_path, project_root)
+    module_full_name = relative_path.replace(os.sep, '.')[:-3] # Remove .py extension and replace / with .
     
-    spec = importlib.util.spec_from_file_location(module_full_name, module_path)
+    spec = importlib.util.spec_from_file_location(module_full_name, model_path)
     if spec is None:
-        raise ImportError(f"Could not load spec for module at path {module_path}")
+        raise ImportError(f"Could not load spec for module at path {model_path}")
     
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
@@ -47,17 +46,68 @@ def train_model(experiment_id: str, fold_number: int, model_config_name: str, mo
     experiment_path = os.path.join(paths.experiments, experiment_id)
     experiment = experiment_service.load_experiment(experiment_id, experiment_path)
     
-    train_df, _ = experiment.get_fold(fold_number)
+    train_df, val_df = experiment.get_fold(fold_number)
     
     model_config = MODELS[model_config_name]
     
-    output_dir = os.path.join(model_output_dir, f"{experiment_id}_fold_{fold_number}")
+    output_dir = os.path.join(model_output_dir, f"{experiment_id}_fold_{fold_number}", model_config_name)
 
     try:
         model = load_model_from_config(model_config)
-        model.train(train_dataset=train_df, hyperparameters=model_config.__dict__, output_dir=output_dir)
+        model.train(train_dataset=train_df, val_dataset=val_df, hyperparameters=model_config.__dict__, output_dir=output_dir)
     except (ImportError, TypeError, Exception) as e:
         logger.error(f"Error loading or running train module: {e}")
+
+def train_final_model(experiment_id: str, model_config_name: str, model_output_dir: str):
+    """
+    Train a final model on the entire training dataset for a given experiment.
+    """
+    experiment_service = ExperimentService()
+    experiment_path = os.path.join(paths.experiments, experiment_id)
+    experiment = experiment_service.load_experiment(experiment_id, experiment_path)
+
+    full_train_df = pd.DataFrame()
+    if experiment.is_cv_experiment:
+        logger.info(f"Concatenating training data from {experiment.n_splits} folds for experiment {experiment_id}.")
+        for i in range(experiment.n_splits):
+            train_df, _ = experiment.get_fold(i)
+            full_train_df = pd.concat([full_train_df, train_df], ignore_index=True)
+    else:
+        logger.info(f"Loading full training data from {os.path.join(experiment.path, 'train.csv')} for experiment {experiment_id}.")
+        full_train_df = pd.read_csv(os.path.join(experiment.path, "train.csv"))
+
+    model_config = MODELS[model_config_name]
+    output_dir = os.path.join(model_output_dir, f"{experiment_id}_final", model_config_name)
+
+    try:
+        model = load_model_from_config(model_config)
+        logger.info(f"Training final model {model_config_name} for experiment {experiment_id}...")
+        model.train(train_dataset=full_train_df, val_dataset=None, hyperparameters=model_config.__dict__, output_dir=output_dir)
+        logger.success(f"Final model {model_config_name} trained and saved to {output_dir}")
+    except (ImportError, TypeError, Exception) as e:
+        logger.error(f"Error loading or running train module for final model: {e}")
+
+def predict_new_data(model_path: str, input_file: str, output_file: str):
+    """
+    Make predictions using a trained model on new data.
+    """
+    try:
+        # Extract model_config_name from model_path
+        # Expected format: trained_models/{experiment_id}_final/{model_config_name}
+        parts = model_path.split(os.sep)
+        model_config_name = parts[-1]
+
+        model_config = MODELS[model_config_name]
+        model = load_model_from_config(model_config)
+
+        data_to_predict = pd.read_csv(input_file)
+        
+        logger.info(f"Making predictions with model from {model_path} on {input_file}...")
+        model.predict(model_dir=model_path, data_to_predict=data_to_predict, output_dir=os.path.dirname(output_file))
+        logger.success(f"Predictions saved to {output_file}")
+
+    except (ImportError, TypeError, Exception) as e:
+        logger.error(f"Error making predictions: {e}")
 
 def predict_model(experiment_id: str, fold_number: int, model_config_name: str, model_input_dir: str, prediction_output_dir: str):
     """
@@ -69,8 +119,8 @@ def predict_model(experiment_id: str, fold_number: int, model_config_name: str, 
     
     _, val_df = experiment.get_fold(fold_number)
     
-    model_dir = os.path.join(model_input_dir, f"{experiment_id}_fold_{fold_number}")
-    output_dir = os.path.join(prediction_output_dir, f"{experiment_id}_fold_{fold_number}")
+    model_dir = os.path.join(model_input_dir, f"{experiment_id}_fold_{fold_number}", model_config_name)
+    output_dir = os.path.join(prediction_output_dir, f"{experiment_id}_fold_{fold_number}", model_config_name)
     
     model_config = MODELS[model_config_name]
 
@@ -89,7 +139,7 @@ def evaluate_predictions(experiment_id: str, fold_number: int, model_config_name
     experiment_path = os.path.join(paths.experiments, experiment_id)
     experiment = experiment_service.load_experiment(experiment_id, experiment_path)
 
-    prediction_file = os.path.join(prediction_input_dir, f"{experiment_id}_fold_{fold_number}", "predictions.csv")
+    prediction_file = os.path.join(prediction_input_dir, f"{experiment_id}_fold_{fold_number}", model_config_name, "predictions.csv")
     
     if experiment.is_cv_experiment:
         ground_truth_file = os.path.join(experiment_path, f"val_fold_{fold_number}.csv")

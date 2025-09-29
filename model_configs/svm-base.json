@@ -1,5 +1,5 @@
 {
-    "model_path": "models/svm",
+    "model_path": "models/svm/model.py",
     "model_name": "svm-countvectorizer",
     "training_arguments": {
         "C": 1.0,

@@ -8,7 +8,7 @@ class ModelInterface(ABC):
     """
 
     @abstractmethod
-    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str) -> None:
+    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pd.DataFrame = None) -> None:
         """
         Train the model.
 

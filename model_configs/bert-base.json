@@ -1,5 +1,5 @@
 {
-    "model_path": "models/roberta",
+    "model_path": "models/roberta/model.py",
     "model_name": "bert-base-uncased",
     "training_arguments": {
         "num_train_epochs": 10,

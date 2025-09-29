@@ -6,6 +6,8 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments,
 from datasets import Dataset
 from loguru import logger
 import sys
+from packaging import version
+import transformers
 from src.model_interface import ModelInterface
 
 class GemmaModel(ModelInterface):
@@ -13,7 +15,7 @@ class GemmaModel(ModelInterface):
     A wrapper for the Gemma model that implements the ModelInterface.
     """
 
-    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str):
+    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pd.DataFrame = None):
         """
         Trains a Gemma model on the provided dataset.
 
@@ -22,6 +24,7 @@ class GemmaModel(ModelInterface):
                            It is expected to have 'Sentence' and 'Sentiment' columns.
             hyperparameters: A dictionary of hyperparameters for training.
             output_dir: The directory where the trained model will be saved.
+            val_dataset: An optional pandas DataFrame containing the validation data.
         """
 
         # --- 0. Setup Logging with Loguru ---
@@ -64,6 +67,16 @@ class GemmaModel(ModelInterface):
         tokenized_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'labels'])
         logger.info("Dataset prepared and tokenized.")
 
+        eval_dataset = None
+        if val_dataset is not None:
+            logger.info("Preparing validation dataset...")
+            val_text_data = val_dataset.apply(format_row, axis=1).tolist()
+            val_hf_dataset = Dataset.from_dict({'text': val_text_data})
+            eval_dataset = val_hf_dataset.map(tokenize_function, batched=True)
+            eval_dataset = eval_dataset.map(lambda examples: {'labels': examples['input_ids']}, batched=True)
+            eval_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'labels'])
+            logger.info("Validation dataset prepared and tokenized.")
+
         # --- 3. Configure Training ---
         logger.info("Configuring training arguments...")
         default_training_args = {
@@ -78,7 +91,14 @@ class GemmaModel(ModelInterface):
             "report_to": "none", # Disable default reporting, as we handle logging
             "dataloader_pin_memory": False
         }
-        
+
+        if eval_dataset is not None:
+            if version.parse(transformers.__version__) >= version.parse("4.6.0"):
+                default_training_args["evaluation_strategy"] = "steps"
+                default_training_args["eval_steps"] = 10
+            else:
+                logger.warning("'evaluation_strategy' not supported in this version of transformers. Skipping evaluation.")
+
         training_args_dict = {**default_training_args, **hyperparameters.get("training_arguments", {})}
         training_arguments = TrainingArguments(**training_args_dict)
 
@@ -87,6 +107,7 @@ class GemmaModel(ModelInterface):
             model=model,
             args=training_arguments,
             train_dataset=tokenized_dataset,
+            eval_dataset=eval_dataset,
         )
 
         logger.info("Starting model training...")
@@ -115,7 +136,7 @@ class GemmaModel(ModelInterface):
 
         logger.remove()
         logger.add(sys.stderr, level="INFO")
-        logger.add(log_file, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {message}")
+        logger.add(log_file, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {name}:{function}:{line} - {message}")
 
         logger.info(f"Logging configured. Log file: {log_file}")
 

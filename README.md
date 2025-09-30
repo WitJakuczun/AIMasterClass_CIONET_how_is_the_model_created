@@ -171,7 +171,7 @@ uv run python main.py train --experiment-id <experiment_id> --fold-number <fold_
 *   **Predict:**
     ```bash
 uv run python main.py predict --experiment-id <experiment_id> --fold-number <fold_number> --model-config-name <model_config_name> --model-input-dir <model_input_dir> --prediction-output-dir <prediction_output_dir>
-    ```
+```
 *   **Evaluate:**
     ```bash
 uv run python main.py evaluate --experiment-id <experiment_id> --fold-number <fold_number> --prediction-input-dir <prediction_input_dir>

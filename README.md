@@ -26,7 +26,6 @@ Application handles two stages of ML Model life cycle:
 - **Pandas**: For data manipulation.
 - **Scikit-learn**: For basic ML tasks, including data splitting and evaluation.
 - **Transformers**: A library from Hugging Face for working with Transformer models (e.g., RoBERTa, Gemma).
-- **Pydantic**: For data validation and settings management.
 - **PEFT (Parameter-Efficient Fine-Tuning)**: For efficient model tuning.
 - **TRL (Transformer Reinforcement Learning)**: For training models using reinforcement learning.
 - **Pytest**: For writing and running tests.
@@ -95,52 +94,51 @@ The CLI is designed to support the entire ML model lifecycle, from experimentati
 
 This stage is about finding the best model for your data. It involves creating dataset splits, running experiments, and comparing model performance.
 
-#### Generate dataset splits
+#### 1. Generate dataset splits
 
-You can either create cross-validation splits or a single train/validation split.
-
-To generate CV splits, you can use the `generate-cv-splits` command:
+First, generate your dataset splits using the `generate-splits` command. This command also defines your backtesting strategy.
 
 ```bash
-uv run python main.py generate-cv-splits --experiment-id <experiment_id> --n-splits <n_splits> --input-file <input_file> --target-column <target_column>
+uv run python main.py generate-splits --experiment-id <experiment_id> --input-file <input_file> --target-column <target_column> --test-size <test_size> --backtesting-strategy <backtesting_strategy> [--cv-folds <cv_folds>] [--backtesting-val-size <backtesting_val_size>] [--perf-estimation-val-size <perf_estimation_val_size>] [--final-model-val-size <final_model_val_size>]
 ```
 
-To generate a single train/validation split, you can use the `generate-split` command:
+*   `--experiment-id`: Unique ID for the experiment.
+*   `--input-file`: Path to the input CSV file.
+*   `--target-column`: Column to stratify on (e.g., 'Sentiment').
+*   `--test-size`: Proportion of the dataset for the initial hold-out test set.
+*   `--backtesting-strategy`: Choose your backtesting approach: `cv` for Cross-Validation or `train-val` for a single Train-Validation split.
+*   `--cv-folds`: (Optional, required for `cv` strategy) Number of folds for cross-validation. Defaults to 5.
+*   `--backtesting-val-size`: (Optional, required for `train-val` strategy) Validation set size for the backtesting train/val split. Defaults to 0.15.
+*   `--perf-estimation-val-size`: (Optional) Validation set size for the performance estimation split. Defaults to 0.1.
+*   `--final-model-val-size`: (Optional) Validation set size for the final model training split. Defaults to 0.1.
+
+#### 2. Run Backtesting
+
+Once splits are generated, run the backtesting process for a specific model.
 
 ```bash
-uv run python main.py generate-split --experiment-id <experiment_id> --input-file <input_file> --target-column <target_column> --train-ratio <train_ratio> --val-ratio <val_ratio>
+uv run python main.py run-backtesting --experiment-id <experiment_id> --model-config-name <model_config_name>
 ```
 
-#### Run a full experiment
+#### 3. Estimate Performance
 
-To run a full experiment (train, predict, and evaluate for all folds), you can use the `run-experiment` command:
+After backtesting, you can estimate the performance of the model on a hold-out set.
 
 ```bash
-uv run python main.py run-experiment --experiment-id <experiment_id> --model-config-name <model_config_name> --model-output-dir <model_output_dir> --prediction-output-dir <prediction_output_dir>
+uv run python main.py estimate-performance --experiment-id <experiment_id> --model-config-name <model_config_name>
 ```
 
-You can also run the steps of an experiment individually:
+#### 4. Compare models
 
-*   **Train a model:**
-    ```bash
-    uv run python main.py train --experiment-id <experiment_id> --fold-number <fold_number> --model-config-name <model_config_name> --model-output-dir <model_output_dir>
-    ```
-*   **Predict:**
-    ```bash
-    uv run python main.py predict --experiment-id <experiment_id> --fold-number <fold_number> --model-config-name <model_config_name> --model-input-dir <model_input_dir> --prediction-output-dir <prediction_output_dir>
-    ```
-*   **Evaluate:**
-    ```bash
-    uv run python main.py evaluate --experiment-id <experiment_id> --fold-number <fold_number> --prediction-input-dir <prediction_input_dir>
-    ```
-
-#### Compare models
-
-To compare the performance of different models for a given experiment, you can use the `compare-models` command:
+To compare the performance of different models for a given experiment, use the `compare-models` command. This command now supports comparing results from both backtesting and performance estimation runs.
 
 ```bash
-uv run python main.py compare-models --experiment-id <experiment_id> --output-file <output_file>
+uv run python main.py compare-models --experiment-id <experiment_id> [--output-file <output_file>] [--run-type <run_type>]
 ```
+
+*   `--experiment-id`: Unique ID for the experiment.
+*   `--output-file`: (Optional) Path to save the comparison report (CSV format).
+*   `--run-type`: (Optional) Specifies which type of run to compare. Accepted values are `backtesting` or `performance_estimation`. If omitted, the command will compare both.
 
 ### Stage 2: Production
 
@@ -148,10 +146,10 @@ Once you have found the best model, you can train it on the entire dataset and u
 
 #### Train a final model
 
-To train a final model on the entire training dataset, you can use the `train-final` command:
+To train a final model on the entire training dataset, you can use the `train-final-model` command:
 
 ```bash
-uv run python main.py train-final --experiment-id <experiment_id> --model-config-name <model_config_name> --model-output-dir <model_output_dir>
+uv run python main.py train-final-model --experiment-id <experiment_id> --model-config-name <model_config_name> --model-output-dir <model_output_dir>
 ```
 
 #### Predict on new data
@@ -161,6 +159,27 @@ To make predictions using a trained model on new data, you can use the `predict-
 ```bash
 uv run python main.py predict-new --model-path <model_path> --input-file <input_file> --output-file <output_file>
 ```
+
+## Advanced: Manual Execution
+
+You can also run the steps of an experiment individually for more granular control.
+
+*   **Train a model:**
+    ```bash
+uv run python main.py train --experiment-id <experiment_id> --fold-number <fold_number> --model-config-name <model_config_name> --model-output-dir <model_output_dir>
+    ```
+*   **Predict:**
+    ```bash
+uv run python main.py predict --experiment-id <experiment_id> --fold-number <fold_number> --model-config-name <model_config_name> --model-input-dir <model_input_dir> --prediction-output-dir <prediction_output_dir>
+    ```
+*   **Evaluate:**
+    ```bash
+uv run python main.py evaluate --experiment-id <experiment_id> --fold-number <fold_number> --prediction-input-dir <prediction_input_dir>
+    ```
+*   **Run a full experiment (legacy):**
+    ```bash
+uv run python main.py run-experiment --experiment-id <experiment_id> --model-config-name <model_config_name> --model-output-dir <model_output_dir> --prediction-output-dir <prediction_output_dir>
+    ```
 
 ## Extra Functionality
 

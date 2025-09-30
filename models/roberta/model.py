@@ -1,7 +1,7 @@
 
 import pandas as pd
-from src.model_interface import ModelInterface
-from src.pipeline import Pipeline, PipelineContext
+from mlops.model_interface import ModelInterface
+from mlops.pipeline import Pipeline, PipelineContext
 from .pipeline import RobertaDataPreprocessor, RobertaTrainer, RobertaPredictor
 
 class RobertaModel(ModelInterface):

@@ -2,7 +2,7 @@
 
 import pandas as pd
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from src.result_store import ResultStore
+from mlops.result_store import ResultStore
 import os
 import glob
 import json

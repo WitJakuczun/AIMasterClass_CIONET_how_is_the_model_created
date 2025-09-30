@@ -1,7 +1,7 @@
 
 import os
 import pandas as pd
-from src.experiment import CVExperiment
+from mlops.experiment import CVExperiment
 
 def test_cvexperiment_loads_non_cv_data():
     """Tests that CVExperiment can load a simple train/val split."""

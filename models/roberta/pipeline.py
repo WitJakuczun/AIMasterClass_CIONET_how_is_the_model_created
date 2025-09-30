@@ -6,7 +6,7 @@ from transformers import AutoTokenizer, AutoModelForSequenceClassification, Trai
 from datasets import Dataset
 from loguru import logger
 from sklearn.metrics import accuracy_score
-from src.pipeline import PipelineStep, PipelineContext
+from mlops.pipeline import PipelineStep, PipelineContext
 from packaging import version
 import transformers
 

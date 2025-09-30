@@ -2,17 +2,15 @@ import os
 import glob
 import pandas as pd
 from loguru import logger
-from src import runner
-from src.splitting import DataSplitter
-from evaluate import compare_models, evaluate
 from config import paths
-from models_config import MODELS
-from src.result_store import ResultStore
+from mlops import runner
+from mlops.splitting import DataSplitter
+from evaluate import compare_models
+from mlops.result_store import ResultStore
 
 class Application:
     def __init__(self, runner_module):
         self.runner = runner_module
-        self.splitter = DataSplitter()
 
     def generate_splits(self, experiment_id: str, input_file: str, target_column: str, test_size: float, backtesting_strategy: str, cv_folds: int, backtesting_val_size: float, perf_estimation_val_size: float, final_model_val_size: float):
         """

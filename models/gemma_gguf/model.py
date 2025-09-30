@@ -1,7 +1,7 @@
 
 from loguru import logger
 import pandas as pd
-from src.model_interface import ModelInterface
+from mlops.model_interface import ModelInterface
 
 class GemmaGGUFModel(ModelInterface):
     """

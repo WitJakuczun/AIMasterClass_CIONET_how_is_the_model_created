@@ -13,11 +13,15 @@ dependencies = [
     "tensorflow==2.19.0",
     "tf-keras>=2.19.0",
     "transformers>=4.56.2",
+    "torch",
+    "accelerate",
     "trl>=0.23.0",
     "typer>=0.19.2",
     "loguru>=0.7.2",
     "numpy>=1.26.0",
     "pydantic>=2.8.2",
+    "matplotlib>=3.10.7",
+    "seaborn>=0.13.2",
 ]
 
 [project.optional-dependencies]

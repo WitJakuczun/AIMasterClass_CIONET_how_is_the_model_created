@@ -1,4 +1,6 @@
 {
+    "module_path": "models.gemma.model",
+    "class_name": "GemmaModel",
     "model_path": "models/gemma/model.py",
     "model_name": "google/gemma-3-1b-it",
     "training_arguments": {

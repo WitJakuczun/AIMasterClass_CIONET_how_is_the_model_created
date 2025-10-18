@@ -189,3 +189,36 @@ To see the list of all available models you can run the following command:
 ```bash
 uv run python main.py list-models
 ```
+
+# Folder Structure
+
+Here is a description of the project's folder structure, with details for both users (those running experiments) and developers (those extending the application).
+
+## For the User (Adding Models, Running Experiments)
+
+If you are using this application to train and evaluate models, you will primarily interact with the following directories:
+
+-   `artifacts/data/`: This is where your datasets for experiments are stored. When you generate splits for an experiment, the data will be placed in a subdirectory here.
+-   `artifacts/experiments/`: Contains the results of your experiments. Each experiment has its own folder, where you can find logs and other artifacts.
+-   `artifacts/predictions/`: Stores predictions made by your models during experiments.
+-   `artifacts/trained_models/`: This is where the trained model files are saved.
+-   `model_configs/`: This directory contains JSON configuration files for each model. To add a new model or a new variant of an existing model, you will add a new `.json` file here.
+-   `models/`: This is where the Python code for each model is located. To add a new model, you will create a new sub-directory here and add your `model.py` file, implementing the required interface.
+
+## For the Developer (Developing the Solution)
+
+If you are extending the functionality of this application, you will work with the following files and directories:
+
+-   `main.py`: The main entry point for the CLI application, built with Typer. This is where all the commands are defined.
+-   `mlops/`: This is the core of the application.
+    -   `app.py`: The main application class that connects all the logic.
+    -   `runner.py`: Responsible for running experiments (training, prediction, evaluation).
+    -   `experiment_service.py`: Manages experiments (loading, saving).
+    -   `model_interface.py`: Defines the interface that every model must implement.
+    -   `pipeline.py`: Contains classes for building data processing pipelines.
+    -   `splitting.py`: Handles the logic for splitting datasets.
+-   `models/`: Contains the implementation of each model. Each model is a "strategy" and must implement the `ModelInterface`.
+    -   `[model_name]/model.py`: The implementation of a specific model.
+-   `models_config.py`: This file registers the available models and their configurations so they can be used by the application.
+-   `tests/`: Contains all the tests for the application. `pytest` is used to run the tests.
+-   `pyproject.toml` & `uv.lock`: These files manage the project dependencies.

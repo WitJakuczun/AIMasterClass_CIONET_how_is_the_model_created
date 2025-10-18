@@ -2,7 +2,7 @@
     "module_path": "models.roberta.model",
     "class_name": "RobertaModel",
     "model_path": "models/roberta/model.py",
-    "model_name": "bert-base-uncased",
+    "model_name": "roberta-base",
     "training_arguments": {
         "num_train_epochs": 10,
         "per_device_train_batch_size": 8,

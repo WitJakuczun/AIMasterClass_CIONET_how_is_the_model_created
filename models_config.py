@@ -9,7 +9,9 @@ class HyperparameterSearch(BaseModel):
     param_distributions: Dict[str, Any]
 
 class ModelConfig(BaseModel):
-    model_path: FilePath
+    module_path: str
+    class_name: str
+    model_path: Optional[FilePath] = None
     model_name: Optional[str] = None
     training_arguments: Dict[str, Any] = {}
     hyperparameter_search: Optional[HyperparameterSearch] = None

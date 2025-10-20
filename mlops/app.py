@@ -15,7 +15,7 @@ class Application:
         self.runner = ExperimentRunner(paths_config, models_config)
         self.splitter = DataSplitter()
 
-    def generate_splits(self, experiment_id: str, input_file: str, target_column: str, test_size: float, backtesting_strategy: str, cv_folds: int, backtesting_val_size: float, perf_estimation_val_size: float, final_model_val_size: float):
+    def generate_splits(self, experiment_id: str, input_file: str, target_column: str, test_size: float, backtesting_strategy: str, cv_folds: int, backtesting_val_size: float, backtesting_test_size: float, perf_estimation_val_size: float, final_model_val_size: float):
         """
         Generates a complete set of data splits for an experiment.
         """
@@ -42,26 +42,30 @@ class Application:
         if backtesting_strategy == 'cv':
             cv_dir = backtesting_dir / "cv"
             cv_dir.mkdir(exist_ok=True)
-            for fold, train_fold_df, val_fold_df in self.splitter.split_cv(train_val_df, cv_folds, target_column):
+            for fold, train_fold_df, val_fold_df, test_fold_df in self.splitter.split_cv(train_val_df, cv_folds, target_column):
                 train_fold_df.to_csv(cv_dir / f"train_fold_{fold}.csv", index=False)
                 val_fold_df.to_csv(cv_dir / f"val_fold_{fold}.csv", index=False)
+                test_fold_df.to_csv(cv_dir / f"test_fold_{fold}.csv", index=False)
             logger.info(f"- Generated {cv_folds} CV splits in {cv_dir}")
         elif backtesting_strategy == 'train-val':
             train_val_dir = backtesting_dir / "train-val"
             train_val_dir.mkdir(exist_ok=True)
-            train_df, val_df = self.splitter.split_train_val(train_val_df, backtesting_val_size, target_column)
+            train_df, val_df, test_df = self.splitter.split_train_val(train_val_df, backtesting_val_size, backtesting_test_size, target_column)
             train_df.to_csv(train_val_dir / "train.csv", index=False)
             val_df.to_csv(train_val_dir / "val.csv", index=False)
-            logger.info(f"- Generated train/val split in {train_val_dir}")
+            test_df.to_csv(train_val_dir / "test.csv", index=False)
+            logger.info(f"- Generated train/val/test split in {train_val_dir}")
 
         logger.info("Generating performance estimation splits...")
-        train_df, val_df = self.splitter.split_train_val(train_val_df, perf_estimation_val_size, target_column)
+        # This split does not need a separate test set, as evaluation is done on the global hold-out set
+        train_df, val_df = self.splitter.split_train_test(train_val_df, perf_estimation_val_size, target_column)
         train_df.to_csv(perf_estimation_dir / "train.csv", index=False)
         val_df.to_csv(perf_estimation_dir / "val.csv", index=False)
         logger.info(f"- Generated train/val split in {perf_estimation_dir}")
 
         logger.info("Generating final model splits...")
-        train_df, val_df = self.splitter.split_train_val(df, final_model_val_size, target_column)
+        # This split also uses the entire dataset (minus a small validation set), no test set needed
+        train_df, val_df = self.splitter.split_train_test(df, final_model_val_size, target_column)
         train_df.to_csv(final_model_dir / "train.csv", index=False)
         val_df.to_csv(final_model_dir / "val.csv", index=False)
         logger.info(f"- Generated train/val split in {final_model_dir}")

@@ -54,7 +54,7 @@ class ExperimentRunner:
         model_config = self.models[model_config_name]
         result_store = ResultStore(exp_service.get_run_path(RunType.BACKTESTING))
 
-        for fold, (train_df, val_df) in enumerate(exp_service.get_backtesting_folds()):
+        for fold, (train_df, val_df, test_df) in enumerate(exp_service.get_backtesting_folds()):
             logger.info(f"--- Backtesting Fold {fold} ---")
             
             model_output_dir = Path(self.paths.trained_models) / f"{experiment_id}_backtesting" / f"fold_{fold}" / model_config_name
@@ -70,11 +70,12 @@ class ExperimentRunner:
                 self._save_model_spec(model_config, model_output_dir)
                 
                 logger.info("Predicting...")
-                model.predict(model_dir=str(model_output_dir), data_to_predict=val_df, output_dir=str(prediction_output_dir))
+                model.predict(model_dir=str(model_output_dir), data_to_predict=test_df, output_dir=str(prediction_output_dir))
                 
                 logger.info("Evaluating...")
                 prediction_file = prediction_output_dir / "predictions.csv"
-                ground_truth_file = exp_service.get_backtesting_fold_path(fold)['val']
+                ground_truth_file = exp_service.get_backtesting_fold_path(fold)['test']
+                
                 metrics = evaluate(predictions_file=str(prediction_file), ground_truth_file=ground_truth_file)
                 
                 logger.info(f"Metrics for fold {fold}: {metrics}")

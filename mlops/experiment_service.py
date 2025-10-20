@@ -29,11 +29,13 @@ class ExperimentService:
             for i in range(len(fold_files)):
                 train_df = pd.read_csv(cv_path / f"train_fold_{i}.csv")
                 val_df = pd.read_csv(cv_path / f"val_fold_{i}.csv")
-                yield train_df, val_df
+                test_df = pd.read_csv(cv_path / f"test_fold_{i}.csv")
+                yield train_df, val_df, test_df
         elif train_val_path.exists():
             train_df = pd.read_csv(train_val_path / "train.csv")
             val_df = pd.read_csv(train_val_path / "val.csv")
-            yield train_df, val_df
+            test_df = pd.read_csv(train_val_path / "test.csv")
+            yield train_df, val_df, test_df
 
     def get_backtesting_fold_path(self, fold: int) -> dict:
         backtesting_path = self.get_run_path(RunType.BACKTESTING)
@@ -44,11 +46,13 @@ class ExperimentService:
             return {
                 'train': str(cv_path / f"train_fold_{fold}.csv"),
                 'val': str(cv_path / f"val_fold_{fold}.csv"),
+                'test': str(cv_path / f"test_fold_{fold}.csv"),
             }
         elif train_val_path.exists():
             return {
                 'train': str(train_val_path / "train.csv"),
                 'val': str(train_val_path / "val.csv"),
+                'test': str(train_val_path / "test.csv"),
             }
         else:
             raise FileNotFoundError(f"No backtesting data found in {backtesting_path}")

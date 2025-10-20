@@ -30,4 +30,8 @@ dev = [
 ]
 
 [project.scripts]
-cv_splits = "generate_CV_splits:app"
+cli = "main:app"
+
+[tool.setuptools]
+packages = ["mlops", "models", "data"]
+py-modules = ["main", "config", "models_config", "evaluate"]

@@ -61,6 +61,7 @@ def generate_splits(
     backtesting_strategy: Annotated[str, typer.Option(help="Backtesting strategy: 'cv' or 'train-val'")] = 'cv',
     cv_folds: Annotated[int, typer.Option(help="Number of folds for cross-validation")] = 5,
     backtesting_val_size: Annotated[float, typer.Option(help="Validation set size for backtesting train/val split")] = 0.15,
+    backtesting_test_size: Annotated[float, typer.Option(help="Test set proportion for backtesting split")] = 0.1,
     perf_estimation_val_size: Annotated[float, typer.Option(help="Validation set size for performance estimation split")] = 0.1,
     final_model_val_size: Annotated[float, typer.Option(help="Validation set size for final model training split")] = 0.1
 ):
@@ -75,6 +76,7 @@ def generate_splits(
         backtesting_strategy=backtesting_strategy,
         cv_folds=cv_folds,
         backtesting_val_size=backtesting_val_size,
+        backtesting_test_size=backtesting_test_size,
         perf_estimation_val_size=perf_estimation_val_size,
         final_model_val_size=final_model_val_size
     )

@@ -4,6 +4,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from loguru import logger
 from pathlib import Path
 import re
+from tqdm import tqdm
 
 from mlops.model_interface import ModelInterface
 
@@ -13,7 +14,12 @@ class PromptGemmaModel(ModelInterface):
         self.tokenizer = None
         self.model_name = None
         self.prompt_template = None
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        if torch.cuda.is_available():
+            self.device = "cuda"
+        elif torch.backends.mps.is_available():
+            self.device = "mps"
+        else:
+            self.device = "cpu"
         logger.info(f"Using device: {self.device}")
 
     def _load_model(self):
@@ -26,7 +32,7 @@ class PromptGemmaModel(ModelInterface):
             self.model = AutoModelForCausalLM.from_pretrained(
                 self.model_name,
                 device_map="auto",
-                torch_dtype=torch.bfloat16
+                dtype=torch.bfloat16
             )
 
     def train(self, train_dataset: pd.DataFrame, val_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str):
@@ -50,8 +56,8 @@ class PromptGemmaModel(ModelInterface):
 
         predictions = []
 
-        for index, row in data_to_predict.iterrows():
-            text = row['Text']
+        for index, row in tqdm(data_to_predict.iterrows(), total=data_to_predict.shape[0], desc="Predicting"):
+            text = row['Sentence']
             prompt = self.prompt_template.format(text_to_analyze=text)
             
             inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
@@ -64,14 +70,13 @@ class PromptGemmaModel(ModelInterface):
             if match:
                 sentiment = match.group(1).lower()
             else:
+                print(f"{text=} => {generated_response=}")
                 sentiment = "unknown"
             
-            predictions.append({
-                'id': row['id'],
-                'Sentiment': sentiment
-            })
+            predictions.append(sentiment)
 
-        predictions_df = pd.DataFrame(predictions)
+        output_df = data_to_predict.copy()
+        output_df['Predicted_Sentiment'] = predictions
         output_path = Path(output_dir) / "predictions.csv"
-        predictions_df.to_csv(output_path, index=False)
+        output_df.to_csv(output_path, index=False)
         logger.info(f"Predictions saved to {output_path}")

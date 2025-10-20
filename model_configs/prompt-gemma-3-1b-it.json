@@ -1,8 +1,0 @@
-{
-    "module_path": "models.prompt_gemma.model",
-    "class_name": "PromptGemmaModel",
-    "model_name": "google/gemma-1.1-2b-it",
-    "training_arguments": {
-        "prompt_template": "Analyze the sentiment of the following text and classify it as one of the following: [positive, negative, neutral]. Return only the label.\n\nText: \"{text_to_analyze}\"\nSentiment:"
-    }
-}

@@ -1,67 +1,15 @@
-
 import os
-import pandas as pd
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.svm import SVC
-from sklearn.pipeline import Pipeline
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-import joblib
-from loguru import logger
 import sys
 import io
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import SVC
-from sklearn.pipeline import make_pipeline
 import joblib
-import os
 from loguru import logger
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.svm import SVC
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import RandomizedSearchCV
 
-# Assuming ModelInterface is defined in a way that this class can inherit from it
-# If not, you might need to adjust the import or the class definition
-# For example: from mlops.model_interface import ModelInterface
 from mlops.model_interface import ModelInterface
-
-class SVMModel(ModelInterface):
-    def __init__(self):
-        self.pipeline = None
-
-    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str):
-        logger.info(f"Training SVM model with hyperparameters: {hyperparameters}")
-        
-        # Ensure the target column is of integer type
-        train_dataset['Sentiment'] = train_dataset['Sentiment'].astype(int)
-
-        self.pipeline = make_pipeline(
-            TfidfVectorizer(**hyperparameters.get('tfidf', {})),
-            SVC(**hyperparameters.get('svc', {}))
-        )
-        
-        self.pipeline.fit(train_dataset['Text'], train_dataset['Sentiment'])
-        
-        # Save the trained model
-        model_path = os.path.join(output_dir, 'svm_model.joblib')
-        joblib.dump(self.pipeline, model_path)
-        logger.info(f"SVM model saved to {model_path}")
-
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_dir: str):
-        logger.info(f"Predicting with SVM model from {model_dir}")
-        
-        # Load the model
-        model_path = os.path.join(model_dir, 'svm_model.joblib')
-        self.pipeline = joblib.load(model_path)
-        
-        # Perform prediction
-        predictions = self.pipeline.predict(data_to_predict['Text'])
-        
-        # Create a DataFrame with predictions
-        prediction_df = pd.DataFrame(predictions, columns=['Predicted_Sentiment'])
-        
-        # Save predictions to a CSV file
-        prediction_file = os.path.join(output_dir, 'predictions.csv')
-        prediction_df.to_csv(prediction_file, index=False)
-        logger.info(f"Predictions saved to {prediction_file}")
-
 
 class SVMModel(ModelInterface):
     """

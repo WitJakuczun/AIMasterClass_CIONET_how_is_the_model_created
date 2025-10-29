@@ -20,13 +20,13 @@ class ModelInterface(ABC):
         pass
 
     @abstractmethod
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_dir: str) -> None:
+    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_file: str) -> None:
         """
         Make predictions using a trained model.
 
         Args:
             model_dir: The directory where the trained model is saved.
             data_to_predict: The data to make predictions on.
-            output_dir: The directory to save the predictions.
+            output_file: The path to the file where the predictions will be saved.
         """
         pass

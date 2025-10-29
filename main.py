@@ -1,6 +1,7 @@
 import typer
 from typing_extensions import Annotated
 from loguru import logger
+from pathlib import Path
 
 # Configuration imports
 from config import paths
@@ -116,12 +117,36 @@ def train_final_model(
 def predict_new(
     model_path: Annotated[str, typer.Option(help="Path to the trained model directory")],
     input_file: Annotated[str, typer.Option(help="Path to the CSV file with data to predict")],
-    output_file: Annotated[str, typer.Option(help="Path to save the predictions CSV file")]
+    prediction_id: Annotated[str, typer.Option(help="Unique ID for the prediction run")] = None
 ):
     """
     Makes predictions on new data using a trained model.
     """
-    application.predict_new(model_path, input_file, output_file)
+    if prediction_id is None:
+        from datetime import datetime
+        prediction_id = f"pred_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    
+    input_path = Path(input_file)
+    timestamp = input_path.parent.name
+    name = input_path.stem
+    
+    application.predict_new(model_path, input_file, prediction_id, timestamp, name)
+
+@app.command()
+def evaluate_prediction(
+    predictions_file: Annotated[str, typer.Option(help="Path to the CSV file with predictions")],
+    ground_truth_file: Annotated[str, typer.Option(help="Path to the CSV file with ground truth data")],
+    display: Annotated[bool, typer.Option(help="Display metrics in the terminal")]
+):
+    """
+    Evaluates predictions against ground truth data.
+    """
+    predictions_path = Path(predictions_file)
+    model_id = predictions_path.parent.parent.name
+    name = predictions_path.parent.parent.parent.name
+    timestamp = predictions_path.parent.parent.parent.parent.name
+    
+    application.evaluate_prediction(predictions_file, ground_truth_file, timestamp, name, model_id, display_it=display)
 
 @app.command()
 def compare_models(

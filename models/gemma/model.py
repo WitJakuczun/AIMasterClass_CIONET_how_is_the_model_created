@@ -98,17 +98,18 @@ class GemmaModel(ModelInterface):
         trainer.save_model(output_dir)
         logger.info(f"Model saved successfully to {output_dir}.")
 
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_dir: str):
+    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_file: str):
         """
         Generates predictions using a trained Gemma model.
 
         Args:
             model_dir: The directory where the trained model is saved.
             data_to_predict: A pandas DataFrame with a 'Sentence' column.
-            output_dir: The directory where the predictions will be saved.
+            output_file: The path to the file where the predictions will be saved.
         """
 
         # --- 0. Setup Logging ---
+        output_dir = os.path.dirname(output_file)
         os.makedirs(output_dir, exist_ok=True)
         log_file = os.path.join(output_dir, "prediction.log")
 
@@ -143,6 +144,5 @@ class GemmaModel(ModelInterface):
 
         # --- 3. Save Predictions ---
         logger.info("Saving predictions...")
-        output_file = os.path.join(output_dir, "predictions.csv")
         data_to_predict.to_csv(output_file, index=False)
         logger.info(f"Predictions saved to {output_file}")

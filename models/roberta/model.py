@@ -26,7 +26,7 @@ class RobertaModel(ModelInterface):
         
         training_pipeline.run(context)
 
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_dir: str):
+    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_file: str):
         """
         Generates predictions using a trained RoBERTa model via a pipeline.
         """
@@ -37,6 +37,6 @@ class RobertaModel(ModelInterface):
         context = PipelineContext()
         context.set("model_dir", model_dir)
         context.set("data_to_predict", data_to_predict)
-        context.set("output_dir", output_dir)
+        context.set("output_file", output_file)
         
         prediction_pipeline.run(context)

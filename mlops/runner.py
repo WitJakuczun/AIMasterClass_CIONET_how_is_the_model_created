@@ -70,10 +70,10 @@ class ExperimentRunner:
                 self._save_model_spec(model_config, model_output_dir)
                 
                 logger.info("Predicting...")
-                model.predict(model_dir=str(model_output_dir), data_to_predict=test_df, output_dir=str(prediction_output_dir))
+                prediction_file = prediction_output_dir / "predictions.csv"
+                model.predict(model_dir=str(model_output_dir), data_to_predict=test_df, output_file=str(prediction_file))
                 
                 logger.info("Evaluating...")
-                prediction_file = prediction_output_dir / "predictions.csv"
                 ground_truth_file = exp_service.get_backtesting_fold_path(fold)['test']
                 
                 metrics = evaluate(predictions_file=str(prediction_file), ground_truth_file=ground_truth_file)
@@ -108,10 +108,10 @@ class ExperimentRunner:
             
             logger.info("Predicting on test set...")
             test_df = exp_service.get_test_set()
-            model.predict(model_dir=str(model_output_dir), data_to_predict=test_df, output_dir=str(prediction_output_dir))
+            prediction_file = prediction_output_dir / "predictions.csv"
+            model.predict(model_dir=str(model_output_dir), data_to_predict=test_df, output_file=str(prediction_file))
             
             logger.info("Evaluating performance on test set...")
-            prediction_file = prediction_output_dir / "predictions.csv"
             ground_truth_file = exp_service.get_test_set_path()
             metrics = evaluate(predictions_file=str(prediction_file), ground_truth_file=ground_truth_file)
             
@@ -144,11 +144,16 @@ class ExperimentRunner:
         except Exception as e:
             logger.error(f"Error during final model training: {e}")
 
-    def predict_new(self, model_path: str, input_file: str, output_file: str):
+    def predict_new(self, model_path: str, input_file: str, prediction_id: str, timestamp: str, name: str):
         """
         Makes predictions on new data using a trained model.
         """
         model_path = Path(model_path)
+        model_id = model_path.name
+        output_dir = Path(self.paths.predictions) / "new_data" / timestamp / name / model_id / prediction_id
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = output_dir / "predictions.csv"
+
         spec_path = model_path / "model_spec.json"
 
         if not spec_path.exists():
@@ -162,11 +167,6 @@ class ExperimentRunner:
         
         model = self._load_model_from_config(model_config)
         data_to_predict = pd.read_csv(input_file)
-        output_path = Path(output_file)
-        output_dir = output_path.parent
-        output_dir.mkdir(parents=True, exist_ok=True)
         
-        model.predict(model_dir=str(model_path), data_to_predict=data_to_predict, output_dir=str(output_dir))
-        
-        (output_dir / "predictions.csv").rename(output_path)
+        model.predict(model_dir=str(model_path), data_to_predict=data_to_predict, output_file=str(output_file))
         logger.success(f"Predictions saved to {output_file}")

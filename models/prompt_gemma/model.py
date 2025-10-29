@@ -51,7 +51,7 @@ class PromptGemmaModel(ModelInterface):
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         logger.info(f"Output directory ensured at: {output_dir}")
 
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_dir: str):
+    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_file: str):
         self._load_model()
 
         predictions = []
@@ -77,6 +77,7 @@ class PromptGemmaModel(ModelInterface):
 
         output_df = data_to_predict.copy()
         output_df['Predicted_Sentiment'] = predictions
-        output_path = Path(output_dir) / "predictions.csv"
+        output_path = Path(output_file)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
         output_df.to_csv(output_path, index=False)
         logger.info(f"Predictions saved to {output_path}")

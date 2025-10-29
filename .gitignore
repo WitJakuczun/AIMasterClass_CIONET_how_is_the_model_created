@@ -10,16 +10,18 @@ wheels/
 .venv
 
 #Data
-experiments/
-!experiments/.gitkeep
-predictions/
-!predictions/.gitkeep
-trained_models/
-!trained_models/.gitkeep
-data/
-!data/.gitkeep
-predictions/
-!predictions/.gitkeep
+artifacts/experiments/
+!artifacts/experiments/.gitkeep
+artifacts/predictions/
+!artifacts/predictions/.gitkeep
+artifacts/trained_models/
+!artifacts/trained_models/.gitkeep
+artifacts/data/
+!artifacts/data/.gitkeep
+artifacts/new_data/
+!artifacts/new_data/.gitkeep
+artifacts/predictions/
+!artifacts/predictions/.gitkeep
 
 # gemini cli files
 GEMINI.md

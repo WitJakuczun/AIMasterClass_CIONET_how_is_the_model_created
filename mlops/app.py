@@ -4,7 +4,7 @@ import pandas as pd
 from loguru import logger
 
 from mlops.splitting import DataSplitter
-from evaluate import compare_models
+from evaluate import compare_models, evaluate
 from mlops.result_store import ResultStore
 from mlops.runner import ExperimentRunner
 
@@ -79,8 +79,24 @@ class Application:
     def train_final_model(self, experiment_id: str, model_config_name: str, model_output_dir: str):
         self.runner.train_final_model(experiment_id, model_config_name, model_output_dir)
 
-    def predict_new(self, model_path: str, input_file: str, output_file: str):
-        self.runner.predict_new(model_path, input_file, output_file)
+    def predict_new(self, model_path: str, input_file: str, prediction_id: str, timestamp: str, name: str):
+        self.runner.predict_new(model_path, input_file, prediction_id, timestamp, name)
+
+    def evaluate_prediction(self, predictions_file: str, ground_truth_file: str, timestamp: str, name: str, model_id: str, display_it: bool):
+        logger.info(f"Evaluating predictions from '{predictions_file}' against '{ground_truth_file}'.")
+        metrics = evaluate(predictions_file, ground_truth_file)
+        logger.info(f"Evaluation metrics: {metrics}")
+        
+        output_dir = Path(self.paths.metrics) / timestamp / name / model_id
+        output_dir.mkdir(parents=True, exist_ok=True)
+        output_file = output_dir / "metrics.csv"
+        
+        metrics_df = pd.DataFrame([metrics])
+        metrics_df.to_csv(output_file, index=False)        
+        logger.success(f"Metrics saved to {output_file}")
+
+        if display_it:
+            print(metrics_df)
 
     def compare_models(self, experiment_id: str, output_file: str = None, run_type: str = None):
         compare_models(experiment_id, output_file, run_type)

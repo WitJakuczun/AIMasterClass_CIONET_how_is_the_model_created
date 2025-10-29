@@ -120,8 +120,9 @@ class RobertaPredictor(PipelineStep):
         logger.info("Running RoBERTa predictions...")
         model_dir = context.get("model_dir")
         data_to_predict = context.get("data_to_predict")
-        output_dir = context.get("output_dir")
+        output_file = context.get("output_file")
 
+        output_dir = os.path.dirname(output_file)
         os.makedirs(output_dir, exist_ok=True)
 
         tokenizer = AutoTokenizer.from_pretrained(model_dir)
@@ -147,7 +148,6 @@ class RobertaPredictor(PipelineStep):
         output_df = data_to_predict.copy()
         output_df['Predicted_Sentiment'] = predictions
         
-        output_file = os.path.join(output_dir, "predictions.csv")
         output_df.to_csv(output_file, index=False)
         logger.info(f"Predictions saved to {output_file}")
         return context

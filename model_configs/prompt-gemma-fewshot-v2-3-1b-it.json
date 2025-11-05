@@ -1,0 +1,8 @@
+{
+    "module_path": "models.prompt_gemma.model",
+    "class_name": "PromptGemmaModel",
+    "model_name": "google/gemma-1.1-2b-it",
+    "training_arguments": {
+        "prompt_template": "Analyze the sentiment of the following text and classify it as to only one of the following: [positive, negative, neutral]. Return only the label from the given set [positive, negative, neutral]. You are not allowed to answer '___'. Empty answer is not allowed. Below I give you some examples:\nText: \"The GeoSolutions technology will leverage Benefon 's GPS solutions by providing Location Based Search Technology , a Communities Platform , location relevant multimedia content and a new and powerful commercial model .\"\nSentiment: negative\nText: \"Circulation revenue has increased by 5 % in Finland and 4 % in Sweden in 2008 .\"\nSentiment: positive\nText: \"Elcoteq SE is listed on the Nasdaq OMX Helsinki Ltd. .\"\nSentiment: neutral\nText: \"Today I bought more $MU $YHOO $VALE $NBL $TWTR $AXP $ZNGA https://t.co/Vt6T5Zp2is\"\nSentiment: positive\nText: \"$BBRY both 1m/6m trends turn bullish today with a resistance level at $11.31. http://stks.co/j1qt\"\nSentiment: positive\n\nText: \"{text_to_analyze}\"\nSentiment:"
+    }
+}

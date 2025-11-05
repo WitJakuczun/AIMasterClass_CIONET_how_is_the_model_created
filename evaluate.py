@@ -2,7 +2,7 @@
 
 import pandas as pd
 from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from src.result_store import ResultStore
+from mlops.result_store import ResultStore
 import os
 import glob
 import json
@@ -95,6 +95,7 @@ def compare_models(experiment_id: str, output_file: str = None, run_type: str = 
         logger.info("\n" + summary_df.to_string())
 
     if output_file:
+        results_df = results_df.sort_values(by="accuracy", ascending=False)
         results_df.to_csv(output_file, index=False)
         logger.info(f"Comparison report saved to {output_file}")
 

@@ -1,4 +1,6 @@
 {
+    "module_path": "models.gemma.model",
+    "class_name": "GemmaModel",
     "model_path": "models/gemma/model.py",
     "model_name": "speakleash/Bielik-1.5B-v3.0-Instruct",
     "training_arguments": {

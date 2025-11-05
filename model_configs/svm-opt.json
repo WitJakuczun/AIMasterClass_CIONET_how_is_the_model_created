@@ -1,4 +1,6 @@
 {
+    "module_path": "models.svm.model",
+    "class_name": "SVMModel",
     "model_path": "models/svm/model.py",
     "model_name": "svm-countvectorizer",
     "training_arguments": {

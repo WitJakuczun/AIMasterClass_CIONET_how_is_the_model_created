@@ -1,4 +1,6 @@
 {
+    "module_path": "models.roberta.model",
+    "class_name": "RobertaModel",
     "model_path": "models/roberta/model.py",
     "model_name": "roberta-base",
     "training_arguments": {

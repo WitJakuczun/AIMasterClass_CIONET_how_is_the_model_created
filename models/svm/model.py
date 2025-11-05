@@ -1,15 +1,15 @@
-
 import os
+import sys
+import io
 import pandas as pd
+import joblib
+from loguru import logger
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.svm import SVC
 from sklearn.pipeline import Pipeline
-from sklearn.model_selection import GridSearchCV, RandomizedSearchCV
-import joblib
-from loguru import logger
-import sys
-import io
-from src.model_interface import ModelInterface
+from sklearn.model_selection import RandomizedSearchCV
+
+from mlops.model_interface import ModelInterface
 
 class SVMModel(ModelInterface):
     """
@@ -93,17 +93,18 @@ class SVMModel(ModelInterface):
         joblib.dump(pipeline, model_path)
         logger.info(f"Model saved successfully to {model_path}.")
 
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_dir: str):
+    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_file: str):
         """
         Generates predictions using a trained SVM model.
 
         Args:
             model_dir: The directory where the trained model is saved.
             data_to_predict: A pandas DataFrame with a 'Sentence' column.
-            output_dir: The directory where the predictions will be saved.
+            output_file: The path to the file where the predictions will be saved.
         """
 
         # --- 0. Setup Logging ---
+        output_dir = os.path.dirname(output_file)
         os.makedirs(output_dir, exist_ok=True)
         log_file = os.path.join(output_dir, "prediction.log")
 
@@ -133,6 +134,5 @@ class SVMModel(ModelInterface):
         output_df = data_to_predict.copy()
         output_df['Predicted_Sentiment'] = predictions
         
-        output_file = os.path.join(output_dir, "predictions.csv")
         output_df.to_csv(output_file, index=False)
         logger.info(f"Predictions saved to {output_file}")

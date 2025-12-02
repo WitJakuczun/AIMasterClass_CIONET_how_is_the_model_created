@@ -1,3 +1,7 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "ai-masterclass-cionet"
 version = "0.1.0"
@@ -23,6 +27,7 @@ dependencies = [
     "matplotlib>=3.10.7",
     "seaborn>=0.13.2",
     "tqdm>=4.66.1",
+    "google-generativeai>=0.8.5",
 ]
 
 [project.optional-dependencies]
@@ -32,6 +37,9 @@ dev = [
 
 [project.scripts]
 cli = "main:app"
+
+[tool.uv]
+package = true
 
 [tool.setuptools]
 packages = ["mlops", "models", "data"]

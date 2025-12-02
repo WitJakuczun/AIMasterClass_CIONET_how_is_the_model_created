@@ -288,3 +288,57 @@ If you are creating a new model architecture, you need to create a new Python cl
 -   `main.py`: The main entry point for the CLI application, built with Typer. Defines the `cli` app.
 -   `tests/`: Contains all the tests for the application.
 -   `pyproject.toml` & `uv.lock`: These files manage the project dependencies and scripts.
+
+
+# ChatMLOps Interface (New)
+
+This project now includes an experimental, AI-powered chat interface that allows you to control the entire MLOps lifecycle using natural language.
+
+## Key Features
+
+*   **Natural Language Control**: Instead of remembering complex CLI flags, simply tell the assistant what you want to do (e.g., "Train a model", "Compare results").
+*   **Stateful Conversation**: The assistant remembers the context of your conversation. You can run an experiment and then ask follow-up questions like "How did it perform?" without repeating details.
+*   **Real-time Logs & Analysis**: The interface streams application logs to your console in real-time while simultaneously capturing them for the AI. This allows the model to analyze logs, error messages, and results tables immediately.
+*   **Command History**: Supports standard shell navigation. Use the **Up/Down arrow keys** to cycle through your previous commands.
+*   **Secure Execution**: Uses a `FunctionDispatcher` to securely map natural language intents to specific, allowed Python functions within the application.
+
+## Architecture
+
+The chat interface is built on top of the **Google Gemini API**.
+-   **`GeminiConnector`**: Manages the connection to Google's Generative AI, handling authentication (via ADC or API Key) and maintaining the chat session state.
+-   **`FunctionDispatcher`**: Acts as a bridge between the LLM and the core MLOps logic (`mlops/app.py`). It interprets structured function calls from Gemini and executes the corresponding Python methods.
+
+## How to Run
+
+1.  **Set API Key**: Before launching, you must set your Gemini API key as an environment variable. If you have Google Cloud **Application Default Credentials** configured (`gcloud auth application-default login`), the key is optional.
+
+    ```bash
+    export GEMINI_API_KEY="YOUR_API_KEY_HERE"
+    ```
+
+2.  **Launch the Chat**: Run the following command from the project's root directory:
+    ```bash
+    uv run python -m chatml.chat
+    ```
+
+## Example Commands
+
+Once the chat is running, you can try commands like:
+
+*   **Exploration**:
+    *   "List all available models"
+    *   "Show me the list of experiments"
+
+*   **Data Preparation**:
+    *   "Generate data splits for experiment exp002 using input artifacts/data/data.csv"
+
+*   **Training & Evaluation**:
+    *   "Run backtesting for roberta-base on exp002"
+    *   "Estimate performance for svm-opt in experiment exp001"
+
+*   **Analysis**:
+    *   "Compare models in experiment exp001"
+    *   "Which model performed best in exp001?"
+
+*   **Prediction**:
+    *   "Predict sentiment for artifacts/data/data.csv using the final model from exp001 (svm-opt) and name it prediction_run_1"

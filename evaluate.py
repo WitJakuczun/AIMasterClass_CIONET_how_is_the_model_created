@@ -39,6 +39,7 @@ def evaluate(predictions_file: str, ground_truth_file: str) -> dict:
 def compare_models(experiment_id: str, output_file: str = None, run_type: str = None):
     """
     Compare the performance of different models for a given experiment.
+    Returns a list of dictionaries containing the results.
     """
     from config import paths
     experiment_path = os.path.join(paths.experiments, experiment_id)
@@ -66,7 +67,7 @@ def compare_models(experiment_id: str, output_file: str = None, run_type: str = 
 
     if not all_results:
         logger.warning(f"No results found for experiment '{experiment_id}'.")
-        return
+        return []
 
     results_df = pd.DataFrame(all_results)
 
@@ -98,4 +99,6 @@ def compare_models(experiment_id: str, output_file: str = None, run_type: str = 
         results_df = results_df.sort_values(by="accuracy", ascending=False)
         results_df.to_csv(output_file, index=False)
         logger.info(f"Comparison report saved to {output_file}")
+    
+    return all_results
 

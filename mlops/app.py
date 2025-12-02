@@ -15,7 +15,7 @@ class Application:
         self.runner = ExperimentRunner(paths_config, models_config)
         self.splitter = DataSplitter()
 
-    def generate_splits(self, experiment_id: str, input_file: str, target_column: str, test_size: float, backtesting_strategy: str, cv_folds: int, backtesting_val_size: float, backtesting_test_size: float, perf_estimation_val_size: float, final_model_val_size: float):
+    def generate_splits(self, experiment_id: str, input_file: str, target_column: str, test_size: float, backtesting_strategy: str, cv_folds: int = 5, backtesting_val_size: float = 0.2, backtesting_test_size: float = 0.2, perf_estimation_val_size: float = 0.2, final_model_val_size: float = 0.05):
         """
         Generates a complete set of data splits for an experiment.
         """
@@ -99,7 +99,7 @@ class Application:
             print(metrics_df)
 
     def compare_models(self, experiment_id: str, output_file: str = None, run_type: str = None):
-        compare_models(experiment_id, output_file, run_type)
+        return compare_models(experiment_id, output_file, run_type)
 
     def list_experiments(self):
         logger.info("Available experiments:")

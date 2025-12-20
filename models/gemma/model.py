@@ -2,21 +2,41 @@ import polars as pl
 import os
 from loguru import logger
 import sys
-from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig, TrainingArguments, Trainer, DataCollatorForLanguageModeling
+from transformers import (
+    AutoTokenizer,
+    AutoModelForCausalLM,
+    BitsAndBytesConfig,
+    TrainingArguments,
+    Trainer,
+    DataCollatorForLanguageModeling,
+)
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer
 import torch
-from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
+from rich.progress import (
+    Progress,
+    TextColumn,
+    BarColumn,
+    TaskProgressColumn,
+    TimeRemainingColumn,
+)
 
 from mlops.model_interface import ModelInterface
 from mlops.prompt_engineering import create_gemma_prompt
+
 
 class GemmaModel(ModelInterface):
     """
     A wrapper for the Gemma model that implements the ModelInterface.
     """
 
-    def train(self, train_dataset: pl.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pl.DataFrame = None):
+    def train(
+        self,
+        train_dataset: pl.DataFrame,
+        hyperparameters: dict,
+        output_dir: str,
+        val_dataset: pl.DataFrame = None,
+    ):
         """
         Trains a Gemma model.
 
@@ -31,16 +51,22 @@ class GemmaModel(ModelInterface):
         os.makedirs(output_dir, exist_ok=True)
         log_file = os.path.join(output_dir, "training.log")
 
-        logger.add(log_file, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {message}")
+        logger.add(
+            log_file,
+            level="INFO",
+            format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {message}",
+        )
 
         logger.info(f"Logging configured. Log file: {log_file}")
 
         # --- 1. Load Model and Tokenizer ---
-        model_name = hyperparameters.get('model_name', 'google/gemma-2b-it')
+        model_name = hyperparameters.get("model_name", "google/gemma-2b-it")
         logger.info(f"Loading model and tokenizer for {model_name}...")
 
-        quantization_config = BitsAndBytesConfig(**hyperparameters.get('quantization_config', {}))
-        
+        quantization_config = BitsAndBytesConfig(
+            **hyperparameters.get("quantization_config", {})
+        )
+
         tokenizer = AutoTokenizer.from_pretrained(model_name, token=True)
         tokenizer.pad_token = tokenizer.eos_token
 
@@ -48,7 +74,7 @@ class GemmaModel(ModelInterface):
             model_name,
             quantization_config=quantization_config,
             device_map="auto",
-            token=True
+            token=True,
         )
 
         # --- 2. Prepare model for training ---
@@ -57,29 +83,34 @@ class GemmaModel(ModelInterface):
 
         # --- 3. Configure LoRA ---
         logger.info("Configuring LoRA...")
-        lora_config = LoraConfig(**hyperparameters.get('lora_config', {}))
+        lora_config = LoraConfig(**hyperparameters.get("lora_config", {}))
         model = get_peft_model(model, lora_config)
 
         # --- 4. Prepare Datasets ---
         logger.info("Preparing datasets...")
         train_dataset = train_dataset.with_columns(
-            pl.struct(["Sentence", "Sentiment"]).map_elements(create_gemma_prompt, return_dtype=pl.String).alias("prompt")
+            pl.struct(["Sentence", "Sentiment"])
+            .map_elements(create_gemma_prompt, return_dtype=pl.String)
+            .alias("prompt")
         )
         if val_dataset is not None:
             val_dataset = val_dataset.with_columns(
-                pl.struct(["Sentence", "Sentiment"]).map_elements(create_gemma_prompt, return_dtype=pl.String).alias("prompt")
+                pl.struct(["Sentence", "Sentiment"])
+                .map_elements(create_gemma_prompt, return_dtype=pl.String)
+                .alias("prompt")
             )
 
         # --- 5. Configure Training Arguments ---
         logger.info("Configuring training arguments...")
-        training_args_dict = hyperparameters.get('training_arguments', {})
-        training_args_dict['output_dir'] = output_dir
+        training_args_dict = hyperparameters.get("training_arguments", {})
+        training_args_dict["output_dir"] = output_dir
         training_arguments = TrainingArguments(**training_args_dict)
 
         # --- 6. Create Trainer ---
         logger.info("Creating SFTTrainer...")
         # SFTTrainer works with Hugging Face datasets, so convert polars to HF
         from datasets import Dataset
+
         hf_train = Dataset.from_polars(train_dataset)
         hf_val = Dataset.from_polars(val_dataset) if val_dataset is not None else None
 
@@ -89,7 +120,7 @@ class GemmaModel(ModelInterface):
             eval_dataset=hf_val,
             peft_config=lora_config,
             dataset_text_field="prompt",
-            max_seq_length=hyperparameters.get('max_seq_length', 512),
+            max_seq_length=hyperparameters.get("max_seq_length", 512),
             tokenizer=tokenizer,
             args=training_arguments,
             packing=False,
@@ -120,7 +151,11 @@ class GemmaModel(ModelInterface):
         os.makedirs(output_dir, exist_ok=True)
         log_file = os.path.join(output_dir, "prediction.log")
 
-        logger.add(log_file, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {message}")
+        logger.add(
+            log_file,
+            level="INFO",
+            format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {message}",
+        )
 
         logger.info(f"Logging configured. Log file: {log_file}")
 
@@ -136,7 +171,7 @@ class GemmaModel(ModelInterface):
 
         # --- 2. Generate Predictions ---
         logger.info(f"Generating predictions for {len(data_to_predict)} sentences...")
-        
+
         predictions = []
         with Progress(
             TextColumn("[progress.description]{task.description}"),
@@ -144,13 +179,18 @@ class GemmaModel(ModelInterface):
             TaskProgressColumn(),
             TimeRemainingColumn(),
         ) as progress:
-            predict_task = progress.add_task("[yellow]Predicting with Fine-tuned Gemma...", total=data_to_predict.height)
+            predict_task = progress.add_task(
+                "[yellow]Predicting with Fine-tuned Gemma...",
+                total=data_to_predict.height,
+            )
 
             for row in data_to_predict.iter_rows(named=True):
-                text = row['Sentence']
+                text = row["Sentence"]
                 prompt = f"<start_of_turn>user\nOceń sentyment poniższego zdania jako negatywny, neutralny lub pozytywny. Odpowiedz tylko jednym słowem.\nZdanie: {text}<end_of_turn>\n<start_of_turn>model\n"
                 inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-                outputs = model.generate(**inputs, max_new_tokens=5) # Limit tokens to get just the sentiment
+                outputs = model.generate(
+                    **inputs, max_new_tokens=5
+                )  # Limit tokens to get just the sentiment
                 result = tokenizer.decode(outputs[0], skip_special_tokens=True)
                 # Extract the answer after the model tag
                 prediction = result.split("model\n")[-1].strip()

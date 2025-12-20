@@ -2,6 +2,7 @@ import polars as pl
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import numpy as np
 
+
 class DataSplitter:
     """
     A class to handle various data splitting tasks for machine learning experiments.
@@ -22,15 +23,15 @@ class DataSplitter:
                                                      the test dataframe will be None.
         """
         if test_size > 0:
-            # We convert to pandas temporarily because sklearn's train_test_split 
+            # We convert to pandas temporarily because sklearn's train_test_split
             # handles stratification and indexing more naturally with it.
             # Alternatively we could use indices.
             indices = np.arange(df.height)
             train_idx, test_idx = train_test_split(
-                indices, 
-                test_size=test_size, 
-                random_state=42, 
-                stratify=df[stratify_on].to_numpy()
+                indices,
+                test_size=test_size,
+                random_state=42,
+                stratify=df[stratify_on].to_numpy(),
             )
             return df[train_idx], df[test_idx]
         else:
@@ -53,22 +54,26 @@ class DataSplitter:
         """
         skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
         indices = np.arange(df.height)
-        for fold, (train_index, val_test_index) in enumerate(skf.split(indices, df[stratify_on].to_numpy())):
+        for fold, (train_index, val_test_index) in enumerate(
+            skf.split(indices, df[stratify_on].to_numpy())
+        ):
             train_df = df[train_index]
             val_test_df = df[val_test_index]
-            
+
             # Split the validation/test set into validation and test sets
             val_test_indices = np.arange(val_test_df.height)
             val_idx, test_idx = train_test_split(
-                val_test_indices, 
-                test_size=0.5, 
-                random_state=42, 
-                stratify=val_test_df[stratify_on].to_numpy()
+                val_test_indices,
+                test_size=0.5,
+                random_state=42,
+                stratify=val_test_df[stratify_on].to_numpy(),
             )
-            
+
             yield fold, train_df, val_test_df[val_idx], val_test_df[test_idx]
 
-    def split_train_val(self, df: pl.DataFrame, val_size: float, test_size: float, stratify_on: str):
+    def split_train_val(
+        self, df: pl.DataFrame, val_size: float, test_size: float, stratify_on: str
+    ):
         """
         Splits a dataframe into a training set, a validation set, and a test set.
 
@@ -84,24 +89,24 @@ class DataSplitter:
         """
         indices = np.arange(df.height)
         train_idx, val_test_idx = train_test_split(
-            indices, 
-            test_size=(val_size + test_size), 
-            random_state=42, 
-            stratify=df[stratify_on].to_numpy()
+            indices,
+            test_size=(val_size + test_size),
+            random_state=42,
+            stratify=df[stratify_on].to_numpy(),
         )
-        
+
         train_df = df[train_idx]
         val_test_df = df[val_test_idx]
-        
+
         # Calculate the proportion of the remaining data that should be the test set
         relative_test_size = test_size / (val_size + test_size)
-        
+
         val_test_indices = np.arange(val_test_df.height)
         val_idx, test_idx = train_test_split(
-            val_test_indices, 
-            test_size=relative_test_size, 
-            random_state=42, 
-            stratify=val_test_df[stratify_on].to_numpy()
+            val_test_indices,
+            test_size=relative_test_size,
+            random_state=42,
+            stratify=val_test_df[stratify_on].to_numpy(),
         )
-        
+
         return train_df, val_test_df[val_idx], val_test_df[test_idx]

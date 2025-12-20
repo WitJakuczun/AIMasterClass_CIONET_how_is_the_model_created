@@ -1,4 +1,3 @@
-
 import os
 import polars as pl
 from dataclasses import dataclass, field
@@ -6,17 +5,22 @@ from typing import List, Tuple
 import glob
 from loguru import logger
 
+
 # --- DataClass for Experiment ---
 @dataclass
 class CVExperiment:
     experiment_id: str
     path: str
-    folds: List[Tuple[pl.DataFrame, pl.DataFrame]] = field(default_factory=list, repr=False)
+    folds: List[Tuple[pl.DataFrame, pl.DataFrame]] = field(
+        default_factory=list, repr=False
+    )
 
     def __post_init__(self):
         if not self.folds:
             if self.is_cv_experiment:
-                train_files = sorted(glob.glob(os.path.join(self.path, "train_fold_*.csv")))
+                train_files = sorted(
+                    glob.glob(os.path.join(self.path, "train_fold_*.csv"))
+                )
                 for f in train_files:
                     val_f = f.replace("train_fold_", "val_fold_")
                     if os.path.exists(val_f):

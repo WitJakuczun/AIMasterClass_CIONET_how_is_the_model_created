@@ -1,6 +1,6 @@
-
 from dataclasses import dataclass
 from pathlib import Path
+
 
 @dataclass
 class Paths:
@@ -12,5 +12,6 @@ class Paths:
     predictions: Path = artifacts / "predictions"
     metrics: Path = artifacts / "metrics"
     all_train_csv: Path = data / "all_train.csv"
+
 
 paths = Paths()

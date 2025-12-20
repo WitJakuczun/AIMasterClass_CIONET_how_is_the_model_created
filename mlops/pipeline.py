@@ -1,9 +1,10 @@
-
 from abc import ABC, abstractmethod
 from typing import Any, List
 
+
 class PipelineContext:
     """A simple object to pass data between pipeline steps."""
+
     def __init__(self):
         self.data = {}
 
@@ -13,10 +14,12 @@ class PipelineContext:
     def get(self, key: str) -> Any:
         return self.data.get(key)
 
+
 class PipelineStep(ABC):
     @abstractmethod
     def run(self, context: PipelineContext) -> PipelineContext:
         pass
+
 
 class Pipeline:
     def __init__(self, steps: List[PipelineStep]):

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 import polars as pl
 
+
 class ModelInterface(ABC):
     """
     Abstract base class for a machine learning model.
@@ -8,7 +9,13 @@ class ModelInterface(ABC):
     """
 
     @abstractmethod
-    def train(self, train_dataset: pl.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pl.DataFrame = None) -> None:
+    def train(
+        self,
+        train_dataset: pl.DataFrame,
+        hyperparameters: dict,
+        output_dir: str,
+        val_dataset: pl.DataFrame = None,
+    ) -> None:
         """
         Train the model.
 
@@ -21,7 +28,9 @@ class ModelInterface(ABC):
         pass
 
     @abstractmethod
-    def predict(self, model_dir: str, data_to_predict: pl.DataFrame, output_file: str) -> None:
+    def predict(
+        self, model_dir: str, data_to_predict: pl.DataFrame, output_file: str
+    ) -> None:
         """
         Make predictions using a trained model.
 

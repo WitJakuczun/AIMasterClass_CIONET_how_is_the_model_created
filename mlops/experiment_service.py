@@ -4,10 +4,12 @@ from loguru import logger
 import glob
 from enum import Enum
 
+
 class RunType(str, Enum):
     BACKTESTING = "backtesting"
     PERFORMANCE_ESTIMATION = "performance_estimation"
     FINAL_MODEL = "final_model"
+
 
 class ExperimentService:
     def __init__(self, experiment_id: str, paths_config: object, console=None):
@@ -33,14 +35,26 @@ class ExperimentService:
         if cv_path.exists():
             fold_files = glob.glob(str(cv_path / "train_fold_*.csv"))
             for i in range(len(fold_files)):
-                train_df = self._load_csv_with_status(cv_path / f"train_fold_{i}.csv", f"Loading train fold {i}")
-                val_df = self._load_csv_with_status(cv_path / f"val_fold_{i}.csv", f"Loading val fold {i}")
-                test_df = self._load_csv_with_status(cv_path / f"test_fold_{i}.csv", f"Loading test fold {i}")
+                train_df = self._load_csv_with_status(
+                    cv_path / f"train_fold_{i}.csv", f"Loading train fold {i}"
+                )
+                val_df = self._load_csv_with_status(
+                    cv_path / f"val_fold_{i}.csv", f"Loading val fold {i}"
+                )
+                test_df = self._load_csv_with_status(
+                    cv_path / f"test_fold_{i}.csv", f"Loading test fold {i}"
+                )
                 yield train_df, val_df, test_df
         elif train_val_path.exists():
-            train_df = self._load_csv_with_status(train_val_path / "train.csv", "Loading training set")
-            val_df = self._load_csv_with_status(train_val_path / "val.csv", "Loading validation set")
-            test_df = self._load_csv_with_status(train_val_path / "test.csv", "Loading test set")
+            train_df = self._load_csv_with_status(
+                train_val_path / "train.csv", "Loading training set"
+            )
+            val_df = self._load_csv_with_status(
+                train_val_path / "val.csv", "Loading validation set"
+            )
+            test_df = self._load_csv_with_status(
+                train_val_path / "test.csv", "Loading test set"
+            )
             yield train_df, val_df, test_df
 
     def get_backtesting_fold_path(self, fold: int) -> dict:
@@ -50,28 +64,36 @@ class ExperimentService:
 
         if cv_path.exists():
             return {
-                'train': str(cv_path / f"train_fold_{fold}.csv"),
-                'val': str(cv_path / f"val_fold_{fold}.csv"),
-                'test': str(cv_path / f"test_fold_{fold}.csv"),
+                "train": str(cv_path / f"train_fold_{fold}.csv"),
+                "val": str(cv_path / f"val_fold_{fold}.csv"),
+                "test": str(cv_path / f"test_fold_{fold}.csv"),
             }
         elif train_val_path.exists():
             return {
-                'train': str(train_val_path / "train.csv"),
-                'val': str(train_val_path / "val.csv"),
-                'test': str(train_val_path / "test.csv"),
+                "train": str(train_val_path / "train.csv"),
+                "val": str(train_val_path / "val.csv"),
+                "test": str(train_val_path / "test.csv"),
             }
         else:
             raise FileNotFoundError(f"No backtesting data found in {backtesting_path}")
 
-    def get_train_val_split(self, run_type: RunType) -> tuple[pl.DataFrame, pl.DataFrame]:
+    def get_train_val_split(
+        self, run_type: RunType
+    ) -> tuple[pl.DataFrame, pl.DataFrame]:
         """Gets the train/val split for performance estimation or final model training."""
         run_path = self.get_run_path(run_type)
-        train_df = self._load_csv_with_status(run_path / "train.csv", f"Loading {run_type.value} training set")
-        val_df = self._load_csv_with_status(run_path / "val.csv", f"Loading {run_type.value} validation set")
+        train_df = self._load_csv_with_status(
+            run_path / "train.csv", f"Loading {run_type.value} training set"
+        )
+        val_df = self._load_csv_with_status(
+            run_path / "val.csv", f"Loading {run_type.value} validation set"
+        )
         return train_df, val_df
 
     def get_test_set(self) -> pl.DataFrame:
-        return self._load_csv_with_status(self.experiment_path / "test.csv", "Loading global test set")
+        return self._load_csv_with_status(
+            self.experiment_path / "test.csv", "Loading global test set"
+        )
 
     def get_test_set_path(self) -> str:
         return str(self.experiment_path / "test.csv")

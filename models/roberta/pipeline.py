@@ -1,7 +1,12 @@
 import os
 import polars as pl
 import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
+from transformers import (
+    AutoTokenizer,
+    AutoModelForSequenceClassification,
+    TrainingArguments,
+    Trainer,
+)
 from datasets import Dataset
 from loguru import logger
 from sklearn.metrics import accuracy_score
@@ -9,36 +14,50 @@ from mlops.pipeline import PipelineStep, PipelineContext
 from packaging import version
 import transformers
 
+
 class RobertaDataPreprocessor(PipelineStep):
     def run(self, context: PipelineContext) -> PipelineContext:
         logger.info("Preprocessing data for RoBERTa model...")
         train_dataset = context.get("train_dataset")
         val_dataset = context.get("val_dataset")
         hyperparameters = context.get("hyperparameters")
-        
+
         # Get unique labels from Sentiment column
-        labels = train_dataset['Sentiment'].unique().to_list()
+        labels = train_dataset["Sentiment"].unique().to_list()
         label2id = {label: i for i, label in enumerate(labels)}
         id2label = {i: label for i, label in enumerate(labels)}
-        
+
         # Map Sentiment to label ID
         train_dataset = train_dataset.with_columns(
             pl.col("Sentiment").replace(label2id).alias("label")
         )
-        
+
         model_name = hyperparameters.get("model_name", "roberta-base")
         tokenizer = AutoTokenizer.from_pretrained(model_name)
-        
+
         # hf-datasets supports from_polars
         hf_dataset = Dataset.from_polars(train_dataset)
 
         def tokenize_function(examples):
-            return tokenizer(examples["Sentence"], padding="max_length", truncation=True, max_length=512)
+            return tokenizer(
+                examples["Sentence"],
+                padding="max_length",
+                truncation=True,
+                max_length=512,
+            )
 
         tokenized_dataset = hf_dataset.map(tokenize_function, batched=True)
-        tokenized_dataset = tokenized_dataset.remove_columns([col for col in train_dataset.columns if col not in ['label', 'input_ids', 'attention_mask']])
-        tokenized_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'label'])
-        
+        tokenized_dataset = tokenized_dataset.remove_columns(
+            [
+                col
+                for col in train_dataset.columns
+                if col not in ["label", "input_ids", "attention_mask"]
+            ]
+        )
+        tokenized_dataset.set_format(
+            type="torch", columns=["input_ids", "attention_mask", "label"]
+        )
+
         context.set("tokenized_dataset", tokenized_dataset)
 
         if val_dataset is not None:
@@ -48,8 +67,16 @@ class RobertaDataPreprocessor(PipelineStep):
             )
             hf_val_dataset = Dataset.from_polars(val_dataset)
             tokenized_val_dataset = hf_val_dataset.map(tokenize_function, batched=True)
-            tokenized_val_dataset = tokenized_val_dataset.remove_columns([col for col in val_dataset.columns if col not in ['label', 'input_ids', 'attention_mask']])
-            tokenized_val_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'label'])
+            tokenized_val_dataset = tokenized_val_dataset.remove_columns(
+                [
+                    col
+                    for col in val_dataset.columns
+                    if col not in ["label", "input_ids", "attention_mask"]
+                ]
+            )
+            tokenized_val_dataset.set_format(
+                type="torch", columns=["input_ids", "attention_mask", "label"]
+            )
             context.set("tokenized_val_dataset", tokenized_val_dataset)
             logger.info("Validation data preprocessing complete.")
 
@@ -58,6 +85,7 @@ class RobertaDataPreprocessor(PipelineStep):
         context.set("id2label", id2label)
         logger.info("Data preprocessing complete.")
         return context
+
 
 class RobertaTrainer(PipelineStep):
     def run(self, context: PipelineContext) -> PipelineContext:
@@ -72,10 +100,7 @@ class RobertaTrainer(PipelineStep):
 
         model_name = hyperparameters.get("model_name", "roberta-base")
         model = AutoModelForSequenceClassification.from_pretrained(
-            model_name,
-            num_labels=len(label2id),
-            label2id=label2id,
-            id2label=id2label
+            model_name, num_labels=len(label2id), label2id=label2id, id2label=id2label
         )
 
         default_training_args = {
@@ -88,7 +113,7 @@ class RobertaTrainer(PipelineStep):
             "logging_steps": 10,
             "save_total_limit": 2,
             "report_to": "none",
-            "dataloader_pin_memory": False
+            "dataloader_pin_memory": False,
         }
 
         if tokenized_val_dataset is not None:
@@ -96,9 +121,14 @@ class RobertaTrainer(PipelineStep):
                 default_training_args["eval_strategy"] = "steps"
                 default_training_args["eval_steps"] = 10
             else:
-                logger.warning("'evaluation_strategy' not supported in this version of transformers. Skipping evaluation.")
+                logger.warning(
+                    "'evaluation_strategy' not supported in this version of transformers. Skipping evaluation."
+                )
 
-        training_args_dict = {**default_training_args, **hyperparameters.get("training_arguments", {})}
+        training_args_dict = {
+            **default_training_args,
+            **hyperparameters.get("training_arguments", {}),
+        }
         training_arguments = TrainingArguments(**training_args_dict)
 
         def compute_metrics(p):
@@ -111,15 +141,16 @@ class RobertaTrainer(PipelineStep):
             args=training_arguments,
             train_dataset=tokenized_dataset,
             eval_dataset=tokenized_val_dataset,
-            compute_metrics=compute_metrics
+            compute_metrics=compute_metrics,
         )
 
         trainer.train()
-        
+
         trainer.save_model(output_dir)
         tokenizer.save_pretrained(output_dir)
         logger.info(f"Model and tokenizer saved to {output_dir}")
         return context
+
 
 class RobertaPredictor(PipelineStep):
     def run(self, context: PipelineContext) -> PipelineContext:
@@ -140,12 +171,18 @@ class RobertaPredictor(PipelineStep):
         predictions = []
 
         for row in data_to_predict.iter_rows(named=True):
-            sentence = row['Sentence']
-            inputs = tokenizer(sentence, return_tensors="pt", padding="max_length", truncation=True, max_length=512).to(device)
-            
+            sentence = row["Sentence"]
+            inputs = tokenizer(
+                sentence,
+                return_tensors="pt",
+                padding="max_length",
+                truncation=True,
+                max_length=512,
+            ).to(device)
+
             with torch.no_grad():
                 outputs = model(**inputs)
-            
+
             logits = outputs.logits
             predicted_class_id = torch.argmax(logits, dim=1).item()
             predicted_sentiment = id2label[predicted_class_id]
@@ -154,7 +191,7 @@ class RobertaPredictor(PipelineStep):
         output_df = data_to_predict.with_columns(
             pl.Series(name="Predicted_Sentiment", values=predictions)
         )
-        
+
         output_df.write_csv(output_file)
         logger.info(f"Predictions saved to {output_file}")
         return context

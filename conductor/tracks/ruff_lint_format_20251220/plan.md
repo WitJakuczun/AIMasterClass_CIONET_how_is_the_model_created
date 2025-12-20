@@ -7,7 +7,7 @@
 - [x] Task: Conductor - User Manual Verification 'Environment Setup & Configuration' (Protocol in workflow.md)
 
 ## Phase 2: Initial Codebase Cleanup
-- [ ] Task: Execute `uv run ruff format .` to apply consistent formatting to the entire repository.
+- [~] Task: Execute `uv run ruff format .` to apply consistent formatting to the entire repository.
 - [ ] Task: Execute `uv run ruff check --fix .` to resolve auto-fixable linting issues (imports, basic rules).
 - [ ] Task: Manually resolve any remaining critical linting/security issues identified by Ruff.
 - [ ] Task: Conductor - User Manual Verification 'Initial Codebase Cleanup' (Protocol in workflow.md)

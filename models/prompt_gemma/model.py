@@ -4,9 +4,16 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from loguru import logger
 from pathlib import Path
 import re
-from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
+from rich.progress import (
+    Progress,
+    TextColumn,
+    BarColumn,
+    TaskProgressColumn,
+    TimeRemainingColumn,
+)
 
 from mlops.model_interface import ModelInterface
+
 
 class PromptGemmaModel(ModelInterface):
     def __init__(self):
@@ -25,29 +32,39 @@ class PromptGemmaModel(ModelInterface):
     def _load_model(self):
         if self.model is None or self.tokenizer is None:
             if not self.model_name:
-                raise ValueError("Model name not set. Was the train method called first?")
-            
-            logger.info(f"Loading base model for prompt-based prediction: {self.model_name}")
+                raise ValueError(
+                    "Model name not set. Was the train method called first?"
+                )
+
+            logger.info(
+                f"Loading base model for prompt-based prediction: {self.model_name}"
+            )
             self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
             self.model = AutoModelForCausalLM.from_pretrained(
-                self.model_name,
-                device_map="auto",
-                dtype=torch.bfloat16
+                self.model_name, device_map="auto", dtype=torch.bfloat16
             )
 
-    def train(self, train_dataset: pl.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pl.DataFrame = None):
+    def train(
+        self,
+        train_dataset: pl.DataFrame,
+        hyperparameters: dict,
+        output_dir: str,
+        val_dataset: pl.DataFrame = None,
+    ):
         logger.info("PromptGemmaModel does not require training. Skipping.")
-        self.model_name = hyperparameters.get('model_name')
-        training_args = hyperparameters.get('training_arguments', {})
-        self.prompt_template = training_args.get('prompt_template')
+        self.model_name = hyperparameters.get("model_name")
+        training_args = hyperparameters.get("training_arguments", {})
+        self.prompt_template = training_args.get("prompt_template")
 
         if not self.model_name:
             raise ValueError("'model_name' not found in hyperparameters.")
         if not self.prompt_template:
             raise ValueError("'prompt_template' not found in training_arguments.")
         if "{text_to_analyze}" not in self.prompt_template:
-            raise ValueError("Prompt template must contain '{text_to_analyze}' placeholder.")
-        
+            raise ValueError(
+                "Prompt template must contain '{text_to_analyze}' placeholder."
+            )
+
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         logger.info(f"Output directory ensured at: {output_dir}")
 
@@ -62,25 +79,31 @@ class PromptGemmaModel(ModelInterface):
             TaskProgressColumn(),
             TimeRemainingColumn(),
         ) as progress:
-            predict_task = progress.add_task("[yellow]Predicting with Gemma...", total=data_to_predict.height)
+            predict_task = progress.add_task(
+                "[yellow]Predicting with Gemma...", total=data_to_predict.height
+            )
 
             for row in data_to_predict.iter_rows(named=True):
-                text = row['Sentence']
+                text = row["Sentence"]
                 prompt = self.prompt_template.format(text_to_analyze=text)
-                
+
                 inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
                 response = self.model.generate(**inputs, max_new_tokens=5)
-                output_text = self.tokenizer.decode(response[0], skip_special_tokens=True)
-                
+                output_text = self.tokenizer.decode(
+                    response[0], skip_special_tokens=True
+                )
+
                 generated_response = output_text.split(prompt)[-1].strip()
 
-                match = re.search(r'(positive|negative|neutral)', generated_response, re.IGNORECASE)
+                match = re.search(
+                    r"(positive|negative|neutral)", generated_response, re.IGNORECASE
+                )
                 if match:
                     sentiment = match.group(1).lower()
                 else:
                     print(f"{text=} => {generated_response=}")
                     sentiment = "unknown"
-                
+
                 predictions.append(sentiment)
                 progress.advance(predict_task)
 

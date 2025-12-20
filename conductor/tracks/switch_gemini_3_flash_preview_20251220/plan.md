@@ -1,6 +1,6 @@
 # Plan: Switch ChatML to gemini-3-flash-preview
 
-## Phase 1: Configuration Setup
+## Phase 1: Configuration Setup [checkpoint: fa086f1]
 - [x] Task: Update `config.py` with `DEFAULT_CHAT_MODEL = "gemini-3-flash-preview"` e4586c2
 - [ ] Task: Conductor - User Manual Verification 'Configuration Setup' (Protocol in workflow.md)
 

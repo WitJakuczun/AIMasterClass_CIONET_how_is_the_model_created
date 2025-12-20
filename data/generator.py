@@ -1,4 +1,4 @@
-import pandas as pd
+import polars as pl
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import os
@@ -48,13 +48,25 @@ class DataGenerator:
         
         if distribution_from_file and total_examples:
             logger.info(f"Reading sentiment distribution from {distribution_from_file}")
-            dist_df = pd.read_csv(distribution_from_file)
-            distribution = dist_df['Sentiment'].value_counts(normalize=True)
-            counts = {s: int(total_examples * dist) for s, dist in distribution.items()}
+            dist_df = pl.read_csv(distribution_from_file)
+            
+            # Polars value_counts returns a DataFrame with columns "Sentiment" and "count"
+            distribution = dist_df.select("Sentiment").group_by("Sentiment").len()
+            total_rows = dist_df.height
+            
+            counts = {}
+            for row in distribution.iter_rows(named=True):
+                sentiment = row["Sentiment"]
+                count = row["len"]
+                counts[sentiment] = int(total_examples * (count / total_rows))
+            
             current_total = sum(counts.values())
             if current_total < total_examples:
-                most_frequent_sentiment = distribution.idxmax()
+                # Add remainder to the most frequent sentiment
+                most_frequent_row = distribution.sort("len", descending=True).row(0, named=True)
+                most_frequent_sentiment = most_frequent_row["Sentiment"]
                 counts[most_frequent_sentiment] += total_examples - current_total
+                
             logger.info(f"Target generation counts: {counts}")
             return counts
         
@@ -106,12 +118,12 @@ class DataGenerator:
                 results.append({"Sentence": sentence, "Sentiment": sentiment})
                 logger.info(f"({i+1}/{count}) Generated for '{sentiment}': {sentence}")
 
-        df = pd.DataFrame(results)
+        df = pl.DataFrame(results)
         
         timestamp = datetime.now().strftime("%Y%m%d_%H%M")
         output_dir = os.path.join("artifacts", "new_data", timestamp)
         os.makedirs(output_dir, exist_ok=True)
         
         file_path = os.path.join(output_dir, f"{name}.csv")
-        df.to_csv(file_path, index=False)
+        df.write_csv(file_path)
         logger.info(f"Successfully saved {len(df)} examples to {file_path}")

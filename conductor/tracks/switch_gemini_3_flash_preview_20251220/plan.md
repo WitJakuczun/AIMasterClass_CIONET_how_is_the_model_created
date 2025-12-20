@@ -4,7 +4,7 @@
 - [x] Task: Update `config.py` with `DEFAULT_CHAT_MODEL = "gemini-3-flash-preview"` e4586c2
 - [ ] Task: Conductor - User Manual Verification 'Configuration Setup' (Protocol in workflow.md)
 
-## Phase 2: Connector Logic (TDD)
+## Phase 2: Connector Logic (TDD) [checkpoint: d2b8ad2]
 - [x] Task: Create `tests/test_gemini_connector.py` and write failing tests for `GeminiConnector.get_model()` (Red Phase) e6488d0
     - Sub-task: Test successful selection when `DEFAULT_CHAT_MODEL` is available.
     - Sub-task: Test fallback and warning when `DEFAULT_CHAT_MODEL` is NOT available.

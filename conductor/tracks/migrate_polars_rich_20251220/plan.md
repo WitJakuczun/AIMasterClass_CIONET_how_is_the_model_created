@@ -23,7 +23,7 @@ This phase involves the deep refactoring of the data processing logic. We will t
     - **Technical Details:** Replace `pd.DataFrame` with `pl.DataFrame`. Use `pl.concat` instead of `pd.concat`. Update CSV writing.
     - **Verification:** Run `uv run cli data-generate --name test_gen --examples-per-sentiment 10` and verify the output CSV is valid.
 
-- [ ] Task: Refactor Data Splitting (`mlops/splitting.py`)
+- [x] Task: Refactor Data Splitting (`mlops/splitting.py`) <!-- id: 0baf11d -->
     - **Description:** Rewrite the `StratifiedSplitter` or equivalent logic to handle Polars DataFrames.
     - **Technical Details:** Polars does not have a direct `StratifiedShuffleSplit` equivalent like sklearn on pandas. You may need to:
         1. Convert to Pandas/Numpy just for the `sklearn` split call (boundary conversion).

@@ -63,7 +63,7 @@ Now that the data layer is efficient, we will make the user experience engaging.
 
 - [ ] Task: Conductor - User Manual Verification 'UI Enhancement (Rich)' (Protocol in workflow.md)
 
-## Phase 4: Verification and Cleanup
+## Phase 4: Verification and Cleanup [checkpoint: 23b1120]
 Final checks to ensure everything works as expected.
 
 - [x] Task: Fix and Run All Tests <!-- id: db7ed97 -->

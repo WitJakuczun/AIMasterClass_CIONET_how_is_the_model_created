@@ -20,7 +20,7 @@ This phase focuses on updating the project metadata and creating the necessary P
 ## Phase 2: Final Verification and Cleanup
 This phase ensures the new command works end-to-end and the environment is synchronized.
 
-- [~] Task: End-to-End Manual Verification
+- [x] Task: End-to-End Manual Verification 10a9123
     - **Description:** Manually launch the chat using the new command and perform a simple interaction.
     - **Verification:** Execute `uv run chatml`, type "List all available models", and verify the response.
 

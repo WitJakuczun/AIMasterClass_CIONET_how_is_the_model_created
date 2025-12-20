@@ -1,7 +1,5 @@
-
-
 from pathlib import Path
-import pandas as pd
+import polars as pl
 from loguru import logger
 import glob
 from enum import Enum
@@ -27,14 +25,14 @@ class ExperimentService:
         if cv_path.exists():
             fold_files = glob.glob(str(cv_path / "train_fold_*.csv"))
             for i in range(len(fold_files)):
-                train_df = pd.read_csv(cv_path / f"train_fold_{i}.csv")
-                val_df = pd.read_csv(cv_path / f"val_fold_{i}.csv")
-                test_df = pd.read_csv(cv_path / f"test_fold_{i}.csv")
+                train_df = pl.read_csv(cv_path / f"train_fold_{i}.csv")
+                val_df = pl.read_csv(cv_path / f"val_fold_{i}.csv")
+                test_df = pl.read_csv(cv_path / f"test_fold_{i}.csv")
                 yield train_df, val_df, test_df
         elif train_val_path.exists():
-            train_df = pd.read_csv(train_val_path / "train.csv")
-            val_df = pd.read_csv(train_val_path / "val.csv")
-            test_df = pd.read_csv(train_val_path / "test.csv")
+            train_df = pl.read_csv(train_val_path / "train.csv")
+            val_df = pl.read_csv(train_val_path / "val.csv")
+            test_df = pl.read_csv(train_val_path / "test.csv")
             yield train_df, val_df, test_df
 
     def get_backtesting_fold_path(self, fold: int) -> dict:
@@ -57,15 +55,15 @@ class ExperimentService:
         else:
             raise FileNotFoundError(f"No backtesting data found in {backtesting_path}")
 
-    def get_train_val_split(self, run_type: RunType) -> tuple[pd.DataFrame, pd.DataFrame]:
+    def get_train_val_split(self, run_type: RunType) -> tuple[pl.DataFrame, pl.DataFrame]:
         """Gets the train/val split for performance estimation or final model training."""
         run_path = self.get_run_path(run_type)
-        train_df = pd.read_csv(run_path / "train.csv")
-        val_df = pd.read_csv(run_path / "val.csv")
+        train_df = pl.read_csv(run_path / "train.csv")
+        val_df = pl.read_csv(run_path / "val.csv")
         return train_df, val_df
 
-    def get_test_set(self) -> pd.DataFrame:
-        return pd.read_csv(self.experiment_path / "test.csv")
+    def get_test_set(self) -> pl.DataFrame:
+        return pl.read_csv(self.experiment_path / "test.csv")
 
     def get_test_set_path(self) -> str:
         return str(self.experiment_path / "test.csv")

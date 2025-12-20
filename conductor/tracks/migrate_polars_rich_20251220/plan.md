@@ -43,7 +43,7 @@ This phase involves the deep refactoring of the data processing logic. We will t
 
 - [ ] Task: Conductor - User Manual Verification 'Data Layer Migration (Pandas -> Polars)' (Protocol in workflow.md)
 
-## Phase 3: UI Enhancement (Rich)
+## Phase 3: UI Enhancement (Rich) [checkpoint: 52ffe99]
 Now that the data layer is efficient, we will make the user experience engaging.
 
 - [x] Task: Enhance `list-models` and `list-experiments` with Rich Tables <!-- id: 2fe5e8b -->
@@ -56,7 +56,7 @@ Now that the data layer is efficient, we will make the user experience engaging.
     - **Technical Details:** In `mlops/runner.py`, locate the loops for folds/seeds. Add the progress bar context manager.
     - **Verification:** Run `uv run cli run-backtesting` and see the progress bar in action.
 
-- [ ] Task: Add Status Spinners for Data Loading
+- [~] Task: Add Status Spinners for Data Loading
     - **Description:** Show a "Loading data..." spinner during file I/O operations.
     - **Technical Details:** Use `with console.status("Loading..."):` blocks in `mlops/experiment_service.py` or the main command entry points.
     - **Verification:** Run any command requiring data loading and check for the spinner.

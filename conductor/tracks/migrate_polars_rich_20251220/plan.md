@@ -36,7 +36,7 @@ This phase involves the deep refactoring of the data processing logic. We will t
     - **Technical Details:** Change `pd.read_csv` to `pl.read_csv`.
     - **Verification:** Run existing tests `tests/test_experiment.py`. They will likely fail; this task prepares the ground for fixing them.
 
-- [ ] Task: Refactor Pipeline and Model Interface Boundaries (`mlops/pipeline.py`, `mlops/model_interface.py`)
+- [x] Task: Refactor Pipeline and Model Interface Boundaries (`mlops/pipeline.py`, `mlops/model_interface.py`) <!-- id: 53b38d1 -->
     - **Description:** The Hugging Face `Dataset` object usually consumes the data. Ensure the transition from Polars to HF Dataset is smooth.
     - **Technical Details:** In `mlops/pipeline.py`, update the code that feeds the tokenizer. `Dataset.from_polars(df)` might be available or use `Dataset(pa.Table.from_pandas(df.to_arrow()))`.
     - **Verification:** Run a small backtesting run: `uv run cli run-backtesting ...` (will fail until all consumers are updated, but check for data loading success).

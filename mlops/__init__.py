@@ -1,5 +1,3 @@
-import sys
-
 from loguru import logger
 from rich.logging import RichHandler
 

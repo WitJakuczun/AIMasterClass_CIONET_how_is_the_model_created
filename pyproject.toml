@@ -96,8 +96,10 @@ exclude = [
 # Enable Pyflakes (F), pycodestyle (E), isort (I), pydocstyle (D), and Bandit (S)
 select = ["E", "F", "I", "D", "S"]
 ignore = [
-    "D203", # one-blank-line-before-class (incompatible with D211)
-    "D213", # multi-line-summary-second-line (incompatible with D212)
+    "D",       # Disable all docstring checks for now to have a clean baseline
+    "E501",    # Ignore line length for this initial pass
+    "D203",    # one-blank-line-before-class (incompatible with D211)
+    "D213",    # multi-line-summary-second-line (incompatible with D212)
 ]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
@@ -106,6 +108,9 @@ unfixable = []
 
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9_]+))$"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S607"]
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.

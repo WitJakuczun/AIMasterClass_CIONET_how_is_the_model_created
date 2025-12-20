@@ -12,6 +12,6 @@
 - [x] Task: Verify tests pass and check coverage 38578a3
 - [ ] Task: Conductor - User Manual Verification 'Connector Logic' (Protocol in workflow.md)
 
-## Phase 3: Final Integration & Quality Gate
+## Phase 3: Final Integration & Quality Gate [checkpoint: b9ce4aa]
 - [x] Task: Run full test suite (`pytest`) and linting (`ruff`) e69db5f
 - [ ] Task: Conductor - User Manual Verification 'Final Integration & Quality Gate' (Protocol in workflow.md)

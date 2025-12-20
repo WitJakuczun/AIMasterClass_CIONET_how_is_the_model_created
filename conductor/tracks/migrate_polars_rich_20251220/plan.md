@@ -8,7 +8,7 @@ This phase focuses on preparing the environment by swapping the core data handli
     - **Technical Details:** Edit `pyproject.toml`. Run `uv sync` or `uv lock`.
     - **Verification:** Run `uv run python -c "import polars; import rich"` to confirm installation.
 
-- [ ] Task: Configure Rich Logging
+- [x] Task: Configure Rich Logging <!-- id: bf7a3ee -->
     - **Description:** Update the `loguru` configuration in the entry point (`main.py` or `mlops/__init__.py`) to use `rich.logging.RichHandler`.
     - **Technical Details:** Modify the `logger.add` call. Ensure logs are beautifully formatted with timestamps and colors.
     - **Verification:** Run `uv run cli list-models` and check the log output format.

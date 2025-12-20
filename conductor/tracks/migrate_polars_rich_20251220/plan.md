@@ -3,7 +3,7 @@
 ## Phase 1: Setup and Dependency Management
 This phase focuses on preparing the environment by swapping the core data handling dependencies and setting up the visual foundation.
 
-- [ ] Task: Update Dependencies (Pandas -> Polars, Add Rich)
+- [x] Task: Update Dependencies (Pandas -> Polars, Add Rich) <!-- id: d2c1c3c -->
     - **Description:** Remove `pandas` from `pyproject.toml` (or move to dev-dependencies if strictly needed for tests) and add `polars` and `rich`. Update `uv.lock`.
     - **Technical Details:** Edit `pyproject.toml`. Run `uv sync` or `uv lock`.
     - **Verification:** Run `uv run python -c "import polars; import rich"` to confirm installation.

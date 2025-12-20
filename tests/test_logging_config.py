@@ -1,12 +1,12 @@
-from mlops import setup_logging
+import pytest
 from loguru import logger
 from rich.logging import RichHandler
-import pytest
+
+from mlops import setup_logging
 
 
 def test_setup_logging_configures_rich():
-    """
-    Verifies that setup_logging adds a RichHandler to loguru.
+    """Verifies that setup_logging adds a RichHandler to loguru.
     """
     # Setup logging
     try:

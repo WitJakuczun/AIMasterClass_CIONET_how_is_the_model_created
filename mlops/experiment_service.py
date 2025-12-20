@@ -1,8 +1,8 @@
-from pathlib import Path
-import polars as pl
-from loguru import logger
 import glob
 from enum import Enum
+from pathlib import Path
+
+import polars as pl
 
 
 class RunType(str, Enum):

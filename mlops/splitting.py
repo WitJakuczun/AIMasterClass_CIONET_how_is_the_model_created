@@ -1,16 +1,14 @@
+import numpy as np
 import polars as pl
 from sklearn.model_selection import StratifiedKFold, train_test_split
-import numpy as np
 
 
 class DataSplitter:
-    """
-    A class to handle various data splitting tasks for machine learning experiments.
+    """A class to handle various data splitting tasks for machine learning experiments.
     """
 
     def split_train_test(self, df: pl.DataFrame, test_size: float, stratify_on: str):
-        """
-        Splits a dataframe into a training set and a test set.
+        """Splits a dataframe into a training set and a test set.
 
         Args:
             df (pl.DataFrame): The input dataframe.
@@ -21,6 +19,7 @@ class DataSplitter:
             tuple[pl.DataFrame, pl.DataFrame | None]: A tuple containing the training dataframe
                                                      and the test dataframe. If test_size is 0,
                                                      the test dataframe will be None.
+
         """
         if test_size > 0:
             # We convert to pandas temporarily because sklearn's train_test_split
@@ -38,8 +37,7 @@ class DataSplitter:
             return df, None
 
     def split_cv(self, df: pl.DataFrame, n_splits: int, stratify_on: str):
-        """
-        Generates cross-validation folds from a dataframe, splitting each fold into train, validation, and test sets.
+        """Generates cross-validation folds from a dataframe, splitting each fold into train, validation, and test sets.
 
         Args:
             df (pl.DataFrame): The input dataframe.
@@ -51,6 +49,7 @@ class DataSplitter:
                                                                    the training dataframe,
                                                                    the validation dataframe,
                                                                    and the test dataframe for the fold.
+
         """
         skf = StratifiedKFold(n_splits=n_splits, shuffle=True, random_state=42)
         indices = np.arange(df.height)
@@ -74,8 +73,7 @@ class DataSplitter:
     def split_train_val(
         self, df: pl.DataFrame, val_size: float, test_size: float, stratify_on: str
     ):
-        """
-        Splits a dataframe into a training set, a validation set, and a test set.
+        """Splits a dataframe into a training set, a validation set, and a test set.
 
         Args:
             df (pl.DataFrame): The input dataframe.
@@ -86,6 +84,7 @@ class DataSplitter:
         Returns:
             tuple[pl.DataFrame, pl.DataFrame, pl.DataFrame]: A tuple containing the training, validation,
                                                               and test dataframes.
+
         """
         indices = np.arange(df.height)
         train_idx, val_test_idx = train_test_split(

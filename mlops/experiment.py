@@ -1,9 +1,9 @@
+import glob
 import os
-import polars as pl
 from dataclasses import dataclass, field
 from typing import List, Tuple
-import glob
-from loguru import logger
+
+import polars as pl
 
 
 # --- DataClass for Experiment ---

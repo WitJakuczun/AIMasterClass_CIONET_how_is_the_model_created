@@ -1,16 +1,17 @@
+import re
+from pathlib import Path
+
 import polars as pl
 import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
 from loguru import logger
-from pathlib import Path
-import re
 from rich.progress import (
-    Progress,
-    TextColumn,
     BarColumn,
+    Progress,
     TaskProgressColumn,
+    TextColumn,
     TimeRemainingColumn,
 )
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from mlops.model_interface import ModelInterface
 

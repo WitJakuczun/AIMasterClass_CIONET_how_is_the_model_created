@@ -1,15 +1,13 @@
-import polars as pl
-from sklearn.metrics import accuracy_score, precision_recall_fscore_support
-from mlops.result_store import ResultStore
-import os
-import glob
 import json
+import os
+
+import polars as pl
 from loguru import logger
+from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 
 def evaluate(predictions_file: str, ground_truth_file: str) -> dict:
-    """
-    Evaluates predictions and returns a dictionary of metrics.
+    """Evaluates predictions and returns a dictionary of metrics.
     """
     # Load predictions and ground truth
     predictions_df = pl.read_csv(predictions_file)
@@ -43,8 +41,7 @@ def evaluate(predictions_file: str, ground_truth_file: str) -> dict:
 
 
 def compare_models(experiment_id: str, output_file: str = None, run_type: str = None):
-    """
-    Compare the performance of different models for a given experiment.
+    """Compare the performance of different models for a given experiment.
     Returns a list of dictionaries containing the results.
     """
     from config import paths

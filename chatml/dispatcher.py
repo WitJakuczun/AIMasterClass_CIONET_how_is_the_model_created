@@ -1,17 +1,17 @@
 # chatml/dispatcher.py
-import sys
-import io
 import contextlib
-from pathlib import Path
+import io
+import sys
 from datetime import datetime
-from mlops.app import Application
+from pathlib import Path
+
 from config import Paths
+from mlops.app import Application
 from models_config import MODELS
 
 
 class Tee(io.TextIOBase):
-    """
-    Klasa pomocnicza, która kieruje wyjście do dwóch strumieni jednocześnie:
+    """Klasa pomocnicza, która kieruje wyjście do dwóch strumieni jednocześnie:
     1. Oryginalnego strumienia (np. stdout) - dla użytkownika.
     2. Bufora w pamięci - do przechwycenia dla Gemini.
     """
@@ -32,8 +32,7 @@ class Tee(io.TextIOBase):
 
 
 class FunctionDispatcher:
-    """
-    Klasa odpowiedzialna za mapowanie i wywoływanie funkcji MLOps
+    """Klasa odpowiedzialna za mapowanie i wywoływanie funkcji MLOps
     na podstawie odpowiedzi od Gemini.
     """
 
@@ -54,8 +53,7 @@ class FunctionDispatcher:
         }
 
     def _predict_new_wrapper(self, model_path: str, input_file: str, name: str):
-        """
-        Wrapper dla predict_new, który generuje brakujące identyfikatory i znaczniki czasu.
+        """Wrapper dla predict_new, który generuje brakujące identyfikatory i znaczniki czasu.
         """
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         prediction_id = f"pred_{timestamp}"
@@ -67,8 +65,7 @@ class FunctionDispatcher:
     def _evaluate_prediction_wrapper(
         self, predictions_file: str, ground_truth_file: str, display: bool = True
     ):
-        """
-        Wrapper dla evaluate_prediction, który wyciąga metadane ze ścieżki pliku.
+        """Wrapper dla evaluate_prediction, który wyciąga metadane ze ścieżki pliku.
         """
         predictions_path = Path(predictions_file)
         # Zakładamy strukturę katalogów: .../timestamp/name/model_id/predictions.csv
@@ -93,8 +90,7 @@ class FunctionDispatcher:
         )
 
     def dispatch(self, function_name: str, args: dict):
-        """
-        Wywołuje funkcję na podstawie jej nazwy i argumentów.
+        """Wywołuje funkcję na podstawie jej nazwy i argumentów.
         Logi są jednocześnie wyświetlane na stdout/stderr (dla użytkownika)
         i przechwytywane (dla modelu).
         """

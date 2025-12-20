@@ -1,7 +1,8 @@
-import sys
 import os
-from term_image.image import AutoImage
+import sys
+
 from PIL import Image
+from term_image.image import AutoImage
 
 
 def is_graphics_supported():
@@ -24,8 +25,7 @@ def is_graphics_supported():
 
 
 def display_image(image_path: str):
-    """
-    Displays image in terminal if supported, bypassing stdout capture.
+    """Displays image in terminal if supported, bypassing stdout capture.
     """
     if not is_graphics_supported():
         # Write to original stdout so user sees it, but maybe not model?

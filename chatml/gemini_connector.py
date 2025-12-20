@@ -1,5 +1,6 @@
 # chatml/gemini_connector.py
 import os
+
 import google.generativeai as genai
 from rich.console import Console
 
@@ -7,8 +8,7 @@ from chatml.function_schemas import tools
 
 
 class GeminiConnector:
-    """
-    Klasa odpowiedzialna za komunikację z API Google Gemini.
+    """Klasa odpowiedzialna za komunikację z API Google Gemini.
     Obsługuje stanowe sesje czatu i function calling.
     """
 
@@ -18,8 +18,7 @@ class GeminiConnector:
         self.console = Console()
 
     def configure(self):
-        """
-        Konfiguruje API Gemini, próbując najpierw domyślnych poświadczeń (ADC),
+        """Konfiguruje API Gemini, próbując najpierw domyślnych poświadczeń (ADC),
         a następnie wracając do klucza API ze zmiennej środowiskowej.
         """
         try:
@@ -54,8 +53,7 @@ class GeminiConnector:
                 return False
 
     def get_model(self):
-        """
-        Inicjalizuje i zwraca model generatywny, dynamicznie wybierając dostępny model.
+        """Inicjalizuje i zwraca model generatywny, dynamicznie wybierając dostępny model.
         Tworzy również sesję czatu, jeśli jeszcze nie istnieje.
         """
         if self.model:
@@ -93,8 +91,7 @@ class GeminiConnector:
             return None
 
     async def send_message(self, message: str):
-        """
-        Wysyła wiadomość do modelu w ramach aktywnej sesji czatu.
+        """Wysyła wiadomość do modelu w ramach aktywnej sesji czatu.
         """
         if not self.model:
             self.get_model()
@@ -112,8 +109,7 @@ class GeminiConnector:
             return None
 
     async def send_tool_response(self, function_name: str, result: dict):
-        """
-        Wysyła wynik wykonania funkcji (tool output) z powrotem do modelu.
+        """Wysyła wynik wykonania funkcji (tool output) z powrotem do modelu.
         Model powinien na tej podstawie wygenerować końcową odpowiedź tekstową.
         """
         if not self.chat_session:

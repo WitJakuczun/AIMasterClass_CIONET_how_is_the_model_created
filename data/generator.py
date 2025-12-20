@@ -1,22 +1,22 @@
-import polars as pl
-import torch
-from transformers import AutoTokenizer, AutoModelForCausalLM
 import os
 import random
-from loguru import logger
 from datetime import datetime
+
+import polars as pl
+import torch
+from loguru import logger
 from rich.progress import (
-    Progress,
-    TextColumn,
     BarColumn,
+    Progress,
     TaskProgressColumn,
+    TextColumn,
     TimeRemainingColumn,
 )
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 class DataGenerator:
-    """
-    Generates synthetic data for sentiment analysis using a specified causal language model
+    """Generates synthetic data for sentiment analysis using a specified causal language model
     with a few-shot prompting strategy.
     """
 
@@ -122,7 +122,7 @@ class DataGenerator:
             prompt += f"Sentence: {ex_sentence}\nSentiment: {ex_sentiment}\n\n"
 
         # Add the final instruction for the model to complete
-        prompt += f"Sentence: "  # The model should generate the sentence here
+        prompt += "Sentence: "  # The model should generate the sentence here
         final_prompt_part = f"\nSentiment: {sentiment}"
         prompt += final_prompt_part
 

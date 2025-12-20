@@ -1,20 +1,20 @@
+import io
 import os
 import sys
-import io
-import polars as pl
+
 import joblib
+import polars as pl
 from loguru import logger
 from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.svm import SVC
-from sklearn.pipeline import Pipeline
 from sklearn.model_selection import RandomizedSearchCV
+from sklearn.pipeline import Pipeline
+from sklearn.svm import SVC
 
 from mlops.model_interface import ModelInterface
 
 
 class SVMModel(ModelInterface):
-    """
-    A wrapper for the SVM model that implements the ModelInterface.
+    """A wrapper for the SVM model that implements the ModelInterface.
     """
 
     def train(
@@ -24,8 +24,7 @@ class SVMModel(ModelInterface):
         output_dir: str,
         val_dataset: pl.DataFrame = None,
     ):
-        """
-        Trains an SVM model with CountVectorizer.
+        """Trains an SVM model with CountVectorizer.
 
         Args:
             train_dataset: A polars DataFrame containing the training data.
@@ -33,8 +32,8 @@ class SVMModel(ModelInterface):
             hyperparameters: A dictionary of hyperparameters for the SVM model.
             output_dir: The directory where the trained model will be saved.
             val_dataset: A polars DataFrame containing the validation data.
-        """
 
+        """
         # --- 0. Setup Logging ---
         os.makedirs(output_dir, exist_ok=True)
         log_file = os.path.join(output_dir, "training.log")
@@ -119,15 +118,14 @@ class SVMModel(ModelInterface):
         logger.info(f"Model saved successfully to {model_path}.")
 
     def predict(self, model_dir: str, data_to_predict: pl.DataFrame, output_file: str):
-        """
-        Generates predictions using a trained SVM model.
+        """Generates predictions using a trained SVM model.
 
         Args:
             model_dir: The directory where the trained model is saved.
             data_to_predict: A polars DataFrame with a 'Sentence' column.
             output_file: The path to the file where the predictions will be saved.
-        """
 
+        """
         # --- 0. Setup Logging ---
         output_dir = os.path.dirname(output_file)
         os.makedirs(output_dir, exist_ok=True)

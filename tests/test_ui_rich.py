@@ -1,8 +1,9 @@
-from mlops.app import Application
-from config import paths
-from models_config import MODELS
+
 import pytest
-from unittest.mock import MagicMock, patch
+
+from config import paths
+from mlops.app import Application
+from models_config import MODELS
 
 
 @pytest.fixture

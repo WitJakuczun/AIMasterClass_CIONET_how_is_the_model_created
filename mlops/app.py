@@ -1,17 +1,18 @@
-from pathlib import Path
 import glob
+from pathlib import Path
+
 import polars as pl
 from loguru import logger
 from rich.console import Console
 from rich.table import Table
-from mlops.visualization import plot_model_comparison
-from mlops.terminal_utils import display_image
 
-from mlops.splitting import DataSplitter
 from evaluate import compare_models, evaluate
+from mlops.experiment_service import ExperimentService
 from mlops.result_store import ResultStore
 from mlops.runner import ExperimentRunner
-from mlops.experiment_service import ExperimentService, RunType
+from mlops.splitting import DataSplitter
+from mlops.terminal_utils import display_image
+from mlops.visualization import plot_model_comparison
 
 
 class Application:
@@ -35,8 +36,7 @@ class Application:
         perf_estimation_val_size: float = 0.2,
         final_model_val_size: float = 0.05,
     ):
-        """
-        Generates a complete set of data splits for an experiment.
+        """Generates a complete set of data splits for an experiment.
         """
         base_dir = Path(self.paths.experiments) / experiment_id
         backtesting_dir = base_dir / "backtesting"
@@ -160,8 +160,7 @@ class Application:
         run_type: str = "backtesting",
         metric: str = "f1_score",
     ) -> str:
-        """
-        Generuje wykres porównujący modele w ramach eksperymentu.
+        """Generuje wykres porównujący modele w ramach eksperymentu.
         """
         print(f"Generowanie wizualizacji dla: {experiment_id}, {run_type}, {metric}")
 

@@ -1,33 +1,29 @@
-import polars as pl
 import os
+
+import polars as pl
 from loguru import logger
-import sys
-from transformers import (
-    AutoTokenizer,
-    AutoModelForCausalLM,
-    BitsAndBytesConfig,
-    TrainingArguments,
-    Trainer,
-    DataCollatorForLanguageModeling,
-)
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
-from trl import SFTTrainer
-import torch
 from rich.progress import (
-    Progress,
-    TextColumn,
     BarColumn,
+    Progress,
     TaskProgressColumn,
+    TextColumn,
     TimeRemainingColumn,
 )
+from transformers import (
+    AutoModelForCausalLM,
+    AutoTokenizer,
+    BitsAndBytesConfig,
+    TrainingArguments,
+)
+from trl import SFTTrainer
 
 from mlops.model_interface import ModelInterface
 from mlops.prompt_engineering import create_gemma_prompt
 
 
 class GemmaModel(ModelInterface):
-    """
-    A wrapper for the Gemma model that implements the ModelInterface.
+    """A wrapper for the Gemma model that implements the ModelInterface.
     """
 
     def train(
@@ -37,16 +33,15 @@ class GemmaModel(ModelInterface):
         output_dir: str,
         val_dataset: pl.DataFrame = None,
     ):
-        """
-        Trains a Gemma model.
+        """Trains a Gemma model.
 
         Args:
             train_dataset: A polars DataFrame containing the training data.
             hyperparameters: A dictionary of hyperparameters for the Gemma model.
             output_dir: The directory where the trained model will be saved.
             val_dataset: A polars DataFrame containing the validation data.
-        """
 
+        """
         # --- 0. Setup Logging ---
         os.makedirs(output_dir, exist_ok=True)
         log_file = os.path.join(output_dir, "training.log")
@@ -137,15 +132,14 @@ class GemmaModel(ModelInterface):
         logger.info(f"Model saved successfully to {output_dir}.")
 
     def predict(self, model_dir: str, data_to_predict: pl.DataFrame, output_file: str):
-        """
-        Generates predictions using a trained Gemma model.
+        """Generates predictions using a trained Gemma model.
 
         Args:
             model_dir: The directory where the trained model is saved.
             data_to_predict: A polars DataFrame with a 'Sentence' column.
             output_file: The path to the file where the predictions will be saved.
-        """
 
+        """
         # --- 0. Setup Logging ---
         output_dir = os.path.dirname(output_file)
         os.makedirs(output_dir, exist_ok=True)

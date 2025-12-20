@@ -8,7 +8,7 @@
 
 ## Phase 2: Initial Codebase Cleanup
 - [x] Task: Execute `uv run ruff format .` to apply consistent formatting to the entire repository. 10aba58
-- [ ] Task: Execute `uv run ruff check --fix .` to resolve auto-fixable linting issues (imports, basic rules).
+- [~] Task: Execute `uv run ruff check --fix .` to resolve auto-fixable linting issues (imports, basic rules).
 - [ ] Task: Manually resolve any remaining critical linting/security issues identified by Ruff.
 - [ ] Task: Conductor - User Manual Verification 'Initial Codebase Cleanup' (Protocol in workflow.md)
 

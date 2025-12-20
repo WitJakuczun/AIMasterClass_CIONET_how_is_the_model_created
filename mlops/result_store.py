@@ -1,20 +1,19 @@
 import json
 from pathlib import Path
-from typing import Dict, Any, Union
+from typing import Any, Dict, Union
+
 from loguru import logger
 
 
 class ResultStore:
-    """
-    Handles the storage and retrieval of experiment results.
+    """Handles the storage and retrieval of experiment results.
     """
 
     def __init__(self, experiment_path: Union[str, Path]):
         self.results_file = Path(experiment_path) / "results.json"
 
     def save_metrics(self, fold: int, model_name: str, metrics: Dict[str, Any]):
-        """
-        Saves the metrics for a given fold and model.
+        """Saves the metrics for a given fold and model.
         """
         results = self.load_results()
 
@@ -33,8 +32,7 @@ class ResultStore:
             logger.error(f"Could not write to results file {self.results_file}: {e}")
 
     def load_results(self) -> Dict[str, Any]:
-        """
-        Loads the results from the results file.
+        """Loads the results from the results file.
         """
         if not self.results_file.exists():
             return {}

@@ -1,15 +1,14 @@
 import asyncio
+import atexit
 import os
 import readline
-import atexit
+
 from google.protobuf.struct_pb2 import Struct
 from rich.console import Console
 from rich.panel import Panel
-from rich.prompt import Prompt
-from rich.status import Status
 
-from chatml.gemini_connector import GeminiConnector
 from chatml.dispatcher import FunctionDispatcher
+from chatml.gemini_connector import GeminiConnector
 
 HISTORY_FILE = os.path.expanduser("~/.chatmlops_history")
 
@@ -30,8 +29,7 @@ def to_dict(struct: Struct) -> dict:
 
 
 async def process_model_response(response, connector, dispatcher, console):
-    """
-    Przetwarza odpowiedź modelu, obsługując rekurencyjnie wywołania funkcji.
+    """Przetwarza odpowiedź modelu, obsługując rekurencyjnie wywołania funkcji.
     """
     if not response:
         console.print(
@@ -115,8 +113,7 @@ async def process_model_response(response, connector, dispatcher, console):
 
 
 async def main():
-    """
-    Główna funkcja uruchamiająca interfejs czatu MLOps.
+    """Główna funkcja uruchamiająca interfejs czatu MLOps.
     """
     console = Console()
     console.print(
@@ -171,8 +168,7 @@ async def main():
 
 
 def run_chat():
-    """
-    Synchronous entry point for the chatml script.
+    """Synchronous entry point for the chatml script.
     """
     asyncio.run(main())
 

@@ -1,12 +1,13 @@
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt
-import seaborn as sns
-import polars as pl
-import pandas as pd
 from pathlib import Path
-from typing import Union, Dict, List
+from typing import Dict, List, Union
+
+import matplotlib.pyplot as plt
+import pandas as pd
+import polars as pl
+import seaborn as sns
 
 
 def plot_model_comparison(
@@ -15,8 +16,7 @@ def plot_model_comparison(
     output_path: Path,
     title: str = "Porównanie modeli",
 ) -> str:
-    """
-    Generuje wykres słupkowy porównujący modele i zapisuje go do pliku.
+    """Generuje wykres słupkowy porównujący modele i zapisuje go do pliku.
 
     Args:
         results: DataFrame (polars/pandas) lub lista słowników z wynikami.
@@ -27,6 +27,7 @@ def plot_model_comparison(
 
     Returns:
         Ścieżka do zapisanego pliku jako string.
+
     """
     # Konwersja do pandas na potrzeby seaborn/matplotlib
     if isinstance(results, list):

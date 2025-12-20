@@ -1,6 +1,5 @@
 def create_gemma_prompt(row):
-    """
-    Creates a prompt for the Gemma model from a data row.
+    """Creates a prompt for the Gemma model from a data row.
     Expected to have 'Sentence' and 'Sentiment' columns.
     """
     # row is a dict when using map_elements(..., return_dtype=...) or similar in Polars

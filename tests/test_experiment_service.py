@@ -1,8 +1,9 @@
+from pathlib import Path
+
 import polars as pl
 import pytest
+
 from mlops.experiment_service import ExperimentService, RunType
-from pathlib import Path
-import os
 
 
 class MockPaths:

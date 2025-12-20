@@ -1,18 +1,20 @@
 import os
+
 import polars as pl
 import torch
-from transformers import (
-    AutoTokenizer,
-    AutoModelForSequenceClassification,
-    TrainingArguments,
-    Trainer,
-)
+import transformers
 from datasets import Dataset
 from loguru import logger
-from sklearn.metrics import accuracy_score
-from mlops.pipeline import PipelineStep, PipelineContext
 from packaging import version
-import transformers
+from sklearn.metrics import accuracy_score
+from transformers import (
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    Trainer,
+    TrainingArguments,
+)
+
+from mlops.pipeline import PipelineContext, PipelineStep
 
 
 class RobertaDataPreprocessor(PipelineStep):

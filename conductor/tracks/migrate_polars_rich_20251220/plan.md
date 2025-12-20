@@ -15,7 +15,7 @@ This phase focuses on preparing the environment by swapping the core data handli
 
 - [ ] Task: Conductor - User Manual Verification 'Setup and Dependency Management' (Protocol in workflow.md)
 
-## Phase 2: Data Layer Migration (Pandas -> Polars)
+## Phase 2: Data Layer Migration (Pandas -> Polars) [checkpoint: f016337]
 This phase involves the deep refactoring of the data processing logic. We will tackle this module by module to ensure stability.
 
 - [x] Task: Refactor Data Generator (`data/generator.py`) <!-- id: 2a3a624 -->

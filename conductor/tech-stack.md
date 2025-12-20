@@ -19,3 +19,5 @@
 
 ## Quality Assurance
 - **Pytest:** The standard framework for unit and integration testing.
+- **Ruff:** High-performance Python linter and code formatter.
+- **Pre-commit:** Framework for managing and maintaining multi-language pre-commit hooks.

@@ -1,0 +1,8 @@
+{
+  "track_id": "switch_gemini_3_flash_preview_20251220",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2025-12-20T12:00:00Z",
+  "updated_at": "2025-12-20T12:00:00Z",
+  "description": "Switch to gemini-3-flash-preview model in chatml"
+}

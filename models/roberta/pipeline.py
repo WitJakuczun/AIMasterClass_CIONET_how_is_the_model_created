@@ -1,6 +1,5 @@
-
 import os
-import pandas as pd
+import polars as pl
 import torch
 from transformers import AutoTokenizer, AutoModelForSequenceClassification, TrainingArguments, Trainer
 from datasets import Dataset
@@ -17,16 +16,21 @@ class RobertaDataPreprocessor(PipelineStep):
         val_dataset = context.get("val_dataset")
         hyperparameters = context.get("hyperparameters")
         
-        labels = train_dataset['Sentiment'].unique().tolist()
+        # Get unique labels from Sentiment column
+        labels = train_dataset['Sentiment'].unique().to_list()
         label2id = {label: i for i, label in enumerate(labels)}
         id2label = {i: label for i, label in enumerate(labels)}
         
-        train_dataset['label'] = train_dataset['Sentiment'].map(label2id)
+        # Map Sentiment to label ID
+        train_dataset = train_dataset.with_columns(
+            pl.col("Sentiment").replace(label2id).alias("label")
+        )
         
         model_name = hyperparameters.get("model_name", "roberta-base")
         tokenizer = AutoTokenizer.from_pretrained(model_name)
         
-        hf_dataset = Dataset.from_pandas(train_dataset)
+        # hf-datasets supports from_polars
+        hf_dataset = Dataset.from_polars(train_dataset)
 
         def tokenize_function(examples):
             return tokenizer(examples["Sentence"], padding="max_length", truncation=True, max_length=512)
@@ -39,8 +43,10 @@ class RobertaDataPreprocessor(PipelineStep):
 
         if val_dataset is not None:
             logger.info("Preprocessing validation data...")
-            val_dataset['label'] = val_dataset['Sentiment'].map(label2id)
-            hf_val_dataset = Dataset.from_pandas(val_dataset)
+            val_dataset = val_dataset.with_columns(
+                pl.col("Sentiment").replace(label2id).alias("label")
+            )
+            hf_val_dataset = Dataset.from_polars(val_dataset)
             tokenized_val_dataset = hf_val_dataset.map(tokenize_function, batched=True)
             tokenized_val_dataset = tokenized_val_dataset.remove_columns([col for col in val_dataset.columns if col not in ['label', 'input_ids', 'attention_mask']])
             tokenized_val_dataset.set_format(type='torch', columns=['input_ids', 'attention_mask', 'label'])
@@ -133,7 +139,7 @@ class RobertaPredictor(PipelineStep):
         id2label = model.config.id2label
         predictions = []
 
-        for index, row in data_to_predict.iterrows():
+        for row in data_to_predict.iter_rows(named=True):
             sentence = row['Sentence']
             inputs = tokenizer(sentence, return_tensors="pt", padding="max_length", truncation=True, max_length=512).to(device)
             
@@ -145,9 +151,10 @@ class RobertaPredictor(PipelineStep):
             predicted_sentiment = id2label[predicted_class_id]
             predictions.append(predicted_sentiment)
 
-        output_df = data_to_predict.copy()
-        output_df['Predicted_Sentiment'] = predictions
+        output_df = data_to_predict.with_columns(
+            pl.Series(name="Predicted_Sentiment", values=predictions)
+        )
         
-        output_df.to_csv(output_file, index=False)
+        output_df.write_csv(output_file)
         logger.info(f"Predictions saved to {output_file}")
         return context

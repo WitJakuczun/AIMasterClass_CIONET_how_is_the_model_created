@@ -1,7 +1,7 @@
 
 
 from pathlib import Path
-import pandas as pd
+import polars as pl
 from loguru import logger
 from evaluate import evaluate
 import importlib
@@ -166,7 +166,7 @@ class ExperimentRunner:
         model_config = SimpleNamespace(**spec_data)
         
         model = self._load_model_from_config(model_config)
-        data_to_predict = pd.read_csv(input_file)
+        data_to_predict = pl.read_csv(input_file)
         
         model.predict(model_dir=str(model_path), data_to_predict=data_to_predict, output_file=str(output_file))
         logger.success(f"Predictions saved to {output_file}")

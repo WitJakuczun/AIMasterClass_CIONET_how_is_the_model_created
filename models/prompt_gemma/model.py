@@ -1,4 +1,4 @@
-import pandas as pd
+import polars as pl
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from loguru import logger
@@ -35,7 +35,7 @@ class PromptGemmaModel(ModelInterface):
                 dtype=torch.bfloat16
             )
 
-    def train(self, train_dataset: pd.DataFrame, val_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str):
+    def train(self, train_dataset: pl.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pl.DataFrame = None):
         logger.info("PromptGemmaModel does not require training. Skipping.")
         self.model_name = hyperparameters.get('model_name')
         training_args = hyperparameters.get('training_arguments', {})
@@ -51,12 +51,12 @@ class PromptGemmaModel(ModelInterface):
         Path(output_dir).mkdir(parents=True, exist_ok=True)
         logger.info(f"Output directory ensured at: {output_dir}")
 
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_file: str):
+    def predict(self, model_dir: str, data_to_predict: pl.DataFrame, output_file: str):
         self._load_model()
 
         predictions = []
 
-        for index, row in tqdm(data_to_predict.iterrows(), total=data_to_predict.shape[0], desc="Predicting"):
+        for row in tqdm(data_to_predict.iter_rows(named=True), total=data_to_predict.height, desc="Predicting"):
             text = row['Sentence']
             prompt = self.prompt_template.format(text_to_analyze=text)
             
@@ -75,9 +75,10 @@ class PromptGemmaModel(ModelInterface):
             
             predictions.append(sentiment)
 
-        output_df = data_to_predict.copy()
-        output_df['Predicted_Sentiment'] = predictions
+        output_df = data_to_predict.with_columns(
+            pl.Series(name="Predicted_Sentiment", values=predictions)
+        )
         output_path = Path(output_file)
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        output_df.to_csv(output_path, index=False)
+        output_df.write_csv(output_path)
         logger.info(f"Predictions saved to {output_path}")

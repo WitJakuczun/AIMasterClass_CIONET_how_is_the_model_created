@@ -1,5 +1,5 @@
 
-import pandas as pd
+import polars as pl
 from mlops.model_interface import ModelInterface
 from mlops.pipeline import Pipeline, PipelineContext
 from .pipeline import RobertaDataPreprocessor, RobertaTrainer, RobertaPredictor
@@ -9,7 +9,7 @@ class RobertaModel(ModelInterface):
     A wrapper for the RoBERTa model that implements the ModelInterface using a pipeline.
     """
 
-    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pd.DataFrame = None):
+    def train(self, train_dataset: pl.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pl.DataFrame = None):
         """
         Trains a RoBERTa model using a pipeline.
         """
@@ -26,7 +26,7 @@ class RobertaModel(ModelInterface):
         
         training_pipeline.run(context)
 
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_file: str):
+    def predict(self, model_dir: str, data_to_predict: pl.DataFrame, output_file: str):
         """
         Generates predictions using a trained RoBERTa model via a pipeline.
         """

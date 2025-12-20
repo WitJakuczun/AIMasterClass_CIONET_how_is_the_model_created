@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-import pandas as pd
+import polars as pl
 
 class ModelInterface(ABC):
     """
@@ -8,7 +8,7 @@ class ModelInterface(ABC):
     """
 
     @abstractmethod
-    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pd.DataFrame = None) -> None:
+    def train(self, train_dataset: pl.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pl.DataFrame = None) -> None:
         """
         Train the model.
 
@@ -16,11 +16,12 @@ class ModelInterface(ABC):
             train_dataset: The training dataset.
             hyperparameters: A dictionary of hyperparameters.
             output_dir: The directory to save the trained model.
+            val_dataset: The validation dataset.
         """
         pass
 
     @abstractmethod
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_file: str) -> None:
+    def predict(self, model_dir: str, data_to_predict: pl.DataFrame, output_file: str) -> None:
         """
         Make predictions using a trained model.
 

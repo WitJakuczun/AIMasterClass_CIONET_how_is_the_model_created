@@ -1,7 +1,9 @@
 from pathlib import Path
 import glob
-import pandas as pd
+import polars as pl
 from loguru import logger
+from mlops.visualization import plot_model_comparison
+from mlops.terminal_utils import display_image
 
 from mlops.splitting import DataSplitter
 from evaluate import compare_models, evaluate
@@ -30,12 +32,12 @@ class Application:
 
         logger.info(f"Created directory structure for experiment '{experiment_id}'")
 
-        df = pd.read_csv(input_file)
+        df = pl.read_csv(input_file)
 
         train_val_df, test_df = self.splitter.split_train_test(df, test_size, target_column)
         if test_df is not None:
             test_csv_path = base_dir / "test.csv"
-            test_df.to_csv(test_csv_path, index=False)
+            test_df.write_csv(test_csv_path)
             logger.info(f"Saved test set to {test_csv_path}")
 
         logger.info(f"Generating backtesting splits with strategy: '{backtesting_strategy}'...")
@@ -43,31 +45,31 @@ class Application:
             cv_dir = backtesting_dir / "cv"
             cv_dir.mkdir(exist_ok=True)
             for fold, train_fold_df, val_fold_df, test_fold_df in self.splitter.split_cv(train_val_df, cv_folds, target_column):
-                train_fold_df.to_csv(cv_dir / f"train_fold_{fold}.csv", index=False)
-                val_fold_df.to_csv(cv_dir / f"val_fold_{fold}.csv", index=False)
-                test_fold_df.to_csv(cv_dir / f"test_fold_{fold}.csv", index=False)
+                train_fold_df.write_csv(cv_dir / f"train_fold_{fold}.csv")
+                val_fold_df.write_csv(cv_dir / f"val_fold_{fold}.csv")
+                test_fold_df.write_csv(cv_dir / f"test_fold_{fold}.csv")
             logger.info(f"- Generated {cv_folds} CV splits in {cv_dir}")
         elif backtesting_strategy == 'train-val':
             train_val_dir = backtesting_dir / "train-val"
             train_val_dir.mkdir(exist_ok=True)
             train_df, val_df, test_df = self.splitter.split_train_val(train_val_df, backtesting_val_size, backtesting_test_size, target_column)
-            train_df.to_csv(train_val_dir / "train.csv", index=False)
-            val_df.to_csv(train_val_dir / "val.csv", index=False)
-            test_df.to_csv(train_val_dir / "test.csv", index=False)
+            train_df.write_csv(train_val_dir / "train.csv")
+            val_df.write_csv(train_val_dir / "val.csv")
+            test_df.write_csv(train_val_dir / "test.csv")
             logger.info(f"- Generated train/val/test split in {train_val_dir}")
 
         logger.info("Generating performance estimation splits...")
         # This split does not need a separate test set, as evaluation is done on the global hold-out set
         train_df, val_df = self.splitter.split_train_test(train_val_df, perf_estimation_val_size, target_column)
-        train_df.to_csv(perf_estimation_dir / "train.csv", index=False)
-        val_df.to_csv(perf_estimation_dir / "val.csv", index=False)
+        train_df.write_csv(perf_estimation_dir / "train.csv")
+        val_df.write_csv(perf_estimation_dir / "val.csv")
         logger.info(f"- Generated train/val split in {perf_estimation_dir}")
 
         logger.info("Generating final model splits...")
         # This split also uses the entire dataset (minus a small validation set), no test set needed
         train_df, val_df = self.splitter.split_train_test(df, final_model_val_size, target_column)
-        train_df.to_csv(final_model_dir / "train.csv", index=False)
-        val_df.to_csv(final_model_dir / "val.csv", index=False)
+        train_df.write_csv(final_model_dir / "train.csv")
+        val_df.write_csv(final_model_dir / "val.csv")
         logger.info(f"- Generated train/val split in {final_model_dir}")
 
     def run_backtesting(self, experiment_id: str, model_config_name: str):
@@ -91,12 +93,90 @@ class Application:
         output_dir.mkdir(parents=True, exist_ok=True)
         output_file = output_dir / "metrics.csv"
         
-        metrics_df = pd.DataFrame([metrics])
-        metrics_df.to_csv(output_file, index=False)        
+        metrics_df = pl.DataFrame([metrics])
+        metrics_df.write_csv(output_file)        
         logger.success(f"Metrics saved to {output_file}")
 
         if display_it:
             print(metrics_df)
+
+    def visualize_comparison(self, experiment_id: str, run_type: str = "backtesting", metric: str = "f1_score") -> str:
+        """
+        Generuje wykres porównujący modele w ramach eksperymentu.
+        """
+        print(f"Generowanie wizualizacji dla: {experiment_id}, {run_type}, {metric}")
+        
+        # 1. Ustalenie ścieżek
+        exp_dir = Path(self.paths.experiments) / experiment_id
+        if not exp_dir.exists():
+            return f"Eksperyment {experiment_id} nie istnieje."
+
+        # Try loading from ResultStore (JSON) first
+        run_dir = exp_dir / run_type
+        result_store = ResultStore(run_dir)
+        results_data = result_store.load_results() # Returns Dict[fold, Dict[model, metrics]]
+
+        df = pl.DataFrame()
+        
+        if results_data:
+            # Transform JSON to DataFrame
+            rows = []
+            for fold, models in results_data.items():
+                for model_name, metrics in models.items():
+                    row = metrics.copy()
+                    row['model_name'] = model_name
+                    row['fold'] = fold
+                    rows.append(row)
+            df = pl.DataFrame(rows)
+        
+        # Fallback to CSV if JSON empty (legacy support)
+        if df.is_empty():
+            # Podejście: Szukamy results.csv w katalogu run_type
+            results_path = exp_dir / run_type / "results.csv"
+            
+            if not results_path.exists():
+                # Fallback: próba znalezienia w metrics jeśli to backtesting
+                possible_paths = list(exp_dir.glob(f"**/*{run_type}*.csv"))
+                if possible_paths:
+                     results_path = possible_paths[0]
+            
+            if results_path.exists():
+                try:
+                    df = pl.read_csv(results_path)
+                except Exception as e:
+                    return f"Błąd odczytu wyników CSV: {str(e)}"
+
+        if df.is_empty():
+            return f"Nie znaleziono wyników dla {experiment_id} / {run_type}"
+        
+        # Verify metric exists BEFORE aggregation
+        if metric not in df.columns:
+             return f"Metryka {metric} nie dostępna. Dostępne: {list(df.columns)}"
+
+        # Agregacja jeśli to backtesting (średnia z foldów)
+        if "fold" in df.columns and "model_name" in df.columns:
+            df = df.group_by("model_name").agg(pl.col(metric).mean())
+        
+        if df.is_empty():
+            return "Brak danych do wizualizacji."
+
+        # 2. Przygotowanie ścieżki wyjściowej
+        output_dir = exp_dir / "visualizations"
+        filename = f"comparison_{run_type}_{metric}.png"
+        output_path = output_dir / filename
+
+        # 3. Generowanie wykresu
+        try:
+            plot_path = plot_model_comparison(
+                results=df,
+                metric_name=metric,
+                output_path=output_path,
+                title=f"Comparison: {experiment_id} ({run_type})"
+            )
+            display_image(str(output_path))
+            return f"Wykres został wygenerowany i zapisany w: {plot_path}"
+        except Exception as e:
+            return f"Błąd generowania wykresu: {str(e)}"
 
     def compare_models(self, experiment_id: str, output_file: str = None, run_type: str = None):
         return compare_models(experiment_id, output_file, run_type)

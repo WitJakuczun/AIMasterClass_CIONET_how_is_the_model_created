@@ -1,5 +1,4 @@
-
-import pandas as pd
+import polars as pl
 import os
 from loguru import logger
 import sys
@@ -16,23 +15,21 @@ class GemmaModel(ModelInterface):
     A wrapper for the Gemma model that implements the ModelInterface.
     """
 
-    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pd.DataFrame = None):
+    def train(self, train_dataset: pl.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pl.DataFrame = None):
         """
         Trains a Gemma model.
 
         Args:
-            train_dataset: A pandas DataFrame containing the training data.
+            train_dataset: A polars DataFrame containing the training data.
             hyperparameters: A dictionary of hyperparameters for the Gemma model.
             output_dir: The directory where the trained model will be saved.
-            val_dataset: A pandas DataFrame containing the validation data.
+            val_dataset: A polars DataFrame containing the validation data.
         """
 
         # --- 0. Setup Logging ---
         os.makedirs(output_dir, exist_ok=True)
         log_file = os.path.join(output_dir, "training.log")
 
-        logger.remove()
-        logger.add(sys.stderr, level="INFO")
         logger.add(log_file, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {message}")
 
         logger.info(f"Logging configured. Log file: {log_file}")
@@ -64,9 +61,13 @@ class GemmaModel(ModelInterface):
 
         # --- 4. Prepare Datasets ---
         logger.info("Preparing datasets...")
-        train_dataset['prompt'] = train_dataset.apply(create_gemma_prompt, axis=1)
+        train_dataset = train_dataset.with_columns(
+            pl.struct(["Sentence", "Sentiment"]).map_elements(create_gemma_prompt, return_dtype=pl.String).alias("prompt")
+        )
         if val_dataset is not None:
-            val_dataset['prompt'] = val_dataset.apply(create_gemma_prompt, axis=1)
+            val_dataset = val_dataset.with_columns(
+                pl.struct(["Sentence", "Sentiment"]).map_elements(create_gemma_prompt, return_dtype=pl.String).alias("prompt")
+            )
 
         # --- 5. Configure Training Arguments ---
         logger.info("Configuring training arguments...")
@@ -76,10 +77,15 @@ class GemmaModel(ModelInterface):
 
         # --- 6. Create Trainer ---
         logger.info("Creating SFTTrainer...")
+        # SFTTrainer works with Hugging Face datasets, so convert polars to HF
+        from datasets import Dataset
+        hf_train = Dataset.from_polars(train_dataset)
+        hf_val = Dataset.from_polars(val_dataset) if val_dataset is not None else None
+
         trainer = SFTTrainer(
             model=model,
-            train_dataset=train_dataset,
-            eval_dataset=val_dataset,
+            train_dataset=hf_train,
+            eval_dataset=hf_val,
             peft_config=lora_config,
             dataset_text_field="prompt",
             max_seq_length=hyperparameters.get('max_seq_length', 512),
@@ -98,13 +104,13 @@ class GemmaModel(ModelInterface):
         trainer.save_model(output_dir)
         logger.info(f"Model saved successfully to {output_dir}.")
 
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_file: str):
+    def predict(self, model_dir: str, data_to_predict: pl.DataFrame, output_file: str):
         """
         Generates predictions using a trained Gemma model.
 
         Args:
             model_dir: The directory where the trained model is saved.
-            data_to_predict: A pandas DataFrame with a 'Sentence' column.
+            data_to_predict: A polars DataFrame with a 'Sentence' column.
             output_file: The path to the file where the predictions will be saved.
         """
 
@@ -113,8 +119,6 @@ class GemmaModel(ModelInterface):
         os.makedirs(output_dir, exist_ok=True)
         log_file = os.path.join(output_dir, "prediction.log")
 
-        logger.remove()
-        logger.add(sys.stderr, level="INFO")
         logger.add(log_file, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {message}")
 
         logger.info(f"Logging configured. Log file: {log_file}")
@@ -140,9 +144,11 @@ class GemmaModel(ModelInterface):
             # Extract the answer after the model tag
             return result.split("model\n")[-1].strip()
 
-        data_to_predict['Predicted_Sentiment'] = data_to_predict['Sentence'].apply(get_prediction)
+        data_to_predict = data_to_predict.with_columns(
+            pl.col("Sentence").map_elements(get_prediction, return_dtype=pl.String).alias("Predicted_Sentiment")
+        )
 
         # --- 3. Save Predictions ---
         logger.info("Saving predictions...")
-        data_to_predict.to_csv(output_file, index=False)
+        data_to_predict.write_csv(output_file)
         logger.info(f"Predictions saved to {output_file}")

@@ -1,6 +1,6 @@
 
 import os
-import pandas as pd
+import polars as pl
 from mlops.experiment import CVExperiment
 
 def test_cvexperiment_loads_non_cv_data():
@@ -16,9 +16,9 @@ def test_cvexperiment_loads_non_cv_data():
     
     train_df, val_df = experiment.get_fold(0)
     
-    assert isinstance(train_df, pd.DataFrame)
-    assert isinstance(val_df, pd.DataFrame)
+    assert isinstance(train_df, pl.DataFrame)
+    assert isinstance(val_df, pl.DataFrame)
     assert len(train_df) == 1
     assert len(val_df) == 1
-    assert train_df.iloc[0]['col1'] == 'a'
-    assert val_df.iloc[0]['col1'] == 'c'
+    assert train_df[0, "col1"] == 'a'
+    assert val_df[0, "col1"] == 'c'

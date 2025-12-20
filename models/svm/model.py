@@ -1,7 +1,7 @@
 import os
 import sys
 import io
-import pandas as pd
+import polars as pl
 import joblib
 from loguru import logger
 from sklearn.feature_extraction.text import CountVectorizer
@@ -16,24 +16,24 @@ class SVMModel(ModelInterface):
     A wrapper for the SVM model that implements the ModelInterface.
     """
 
-    def train(self, train_dataset: pd.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pd.DataFrame = None):
+    def train(self, train_dataset: pl.DataFrame, hyperparameters: dict, output_dir: str, val_dataset: pl.DataFrame = None):
         """
         Trains an SVM model with CountVectorizer.
 
         Args:
-            train_dataset: A pandas DataFrame containing the training data.
+            train_dataset: A polars DataFrame containing the training data.
                            It is expected to have 'Sentence' and 'Sentiment' columns.
             hyperparameters: A dictionary of hyperparameters for the SVM model.
             output_dir: The directory where the trained model will be saved.
-            val_dataset: A pandas DataFrame containing the validation data.
+            val_dataset: A polars DataFrame containing the validation data.
         """
 
         # --- 0. Setup Logging ---
         os.makedirs(output_dir, exist_ok=True)
         log_file = os.path.join(output_dir, "training.log")
 
-        logger.remove()
-        logger.add(sys.stderr, level="INFO")
+        # Not removing loggers here to preserve setup_logging configuration, 
+        # but adding a file sink for training.
         logger.add(log_file, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {message}")
 
         logger.info(f"Logging configured. Log file: {log_file}")
@@ -93,13 +93,13 @@ class SVMModel(ModelInterface):
         joblib.dump(pipeline, model_path)
         logger.info(f"Model saved successfully to {model_path}.")
 
-    def predict(self, model_dir: str, data_to_predict: pd.DataFrame, output_file: str):
+    def predict(self, model_dir: str, data_to_predict: pl.DataFrame, output_file: str):
         """
         Generates predictions using a trained SVM model.
 
         Args:
             model_dir: The directory where the trained model is saved.
-            data_to_predict: A pandas DataFrame with a 'Sentence' column.
+            data_to_predict: A polars DataFrame with a 'Sentence' column.
             output_file: The path to the file where the predictions will be saved.
         """
 
@@ -108,8 +108,6 @@ class SVMModel(ModelInterface):
         os.makedirs(output_dir, exist_ok=True)
         log_file = os.path.join(output_dir, "prediction.log")
 
-        logger.remove()
-        logger.add(sys.stderr, level="INFO")
         logger.add(log_file, level="INFO", format="{time:YYYY-MM-DD HH:mm:ss.SSS} | {level: <8} | {message}")
 
         logger.info(f"Logging configured. Log file: {log_file}")
@@ -131,8 +129,9 @@ class SVMModel(ModelInterface):
 
         # --- 3. Save Predictions ---
         logger.info("Saving predictions...")
-        output_df = data_to_predict.copy()
-        output_df['Predicted_Sentiment'] = predictions
+        output_df = data_to_predict.with_columns(
+            pl.Series(name="Predicted_Sentiment", values=predictions)
+        )
         
-        output_df.to_csv(output_file, index=False)
+        output_df.write_csv(output_file)
         logger.info(f"Predictions saved to {output_file}")

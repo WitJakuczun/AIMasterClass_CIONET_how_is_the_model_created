@@ -124,5 +124,11 @@ async def main():
         except Exception as e:
             console.print(Panel(f"[bold red]An unexpected error occurred: {e}[/bold red]", title="[bold red]Critical Error[/bold red]"))
 
-if __name__ == "__main__":
+def run_chat():
+    """
+    Synchronous entry point for the chatml script.
+    """
     asyncio.run(main())
+
+if __name__ == "__main__":
+    run_chat()

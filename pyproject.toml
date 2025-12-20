@@ -40,11 +40,11 @@ dev = [
 
 [project.scripts]
 cli = "main:app"
-chatml = "chat:app"
+chatml = "chatml.chat:run_chat"
 
 [tool.uv]
 package = true
 
 [tool.setuptools]
-packages = ["mlops", "models", "data"]
+packages = ["mlops", "models", "data", "chatml"]
 py-modules = ["main", "config", "models_config", "evaluate"]

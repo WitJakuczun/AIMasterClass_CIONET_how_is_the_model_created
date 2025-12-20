@@ -20,5 +20,19 @@ class TestChatEntry(unittest.TestCase):
         # Verify that main was called
         mock_main.assert_called_once()
 
+    def test_pyproject_entry_point(self):
+        """
+        Verifies that pyproject.toml has the correct entry point for chatml.
+        """
+        import tomllib
+        import os
+        
+        pyproject_path = os.path.join(os.path.dirname(__file__), '..', 'pyproject.toml')
+        with open(pyproject_path, 'rb') as f:
+            data = tomllib.load(f)
+        
+        scripts = data.get('project', {}).get('scripts', {})
+        self.assertEqual(scripts.get('chatml'), 'chatml.chat:run_chat')
+
 if __name__ == "__main__":
     unittest.main()

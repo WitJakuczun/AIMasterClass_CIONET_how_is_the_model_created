@@ -318,7 +318,7 @@ The chat interface is built on top of the **Google Gemini API**.
 
 2.  **Launch the Chat**: Run the following command from the project's root directory:
     ```bash
-    uv run python -m chatml.chat
+    uv run chatml
     ```
 
 ## Example Commands

@@ -14,9 +14,10 @@ from mlops.experiment_service import ExperimentService, RunType
 from mlops.result_store import ResultStore
 
 class ExperimentRunner:
-    def __init__(self, paths_config: object, models_config: object):
+    def __init__(self, paths_config: object, models_config: object, console=None):
         self.paths = paths_config
         self.models = models_config
+        self.console = console or Progress().console
 
     def _load_model_from_config(self, model_config) -> ModelInterface:
         """
@@ -51,7 +52,7 @@ class ExperimentRunner:
         """
         Runs the backtesting phase for a given experiment and model.
         """
-        exp_service = ExperimentService(experiment_id, self.paths)
+        exp_service = ExperimentService(experiment_id, self.paths, self.console)
         model_config = self.models[model_config_name]
         result_store = ResultStore(exp_service.get_run_path(RunType.BACKTESTING))
 
@@ -63,6 +64,7 @@ class ExperimentRunner:
             BarColumn(),
             TaskProgressColumn(),
             TimeRemainingColumn(),
+            console=self.console
         ) as progress:
             backtest_task = progress.add_task(f"[cyan]Backtesting {model_config_name}...", total=num_folds)
 
@@ -103,7 +105,7 @@ class ExperimentRunner:
         """
         Runs the performance estimation phase for a given experiment and model.
         """
-        exp_service = ExperimentService(experiment_id, self.paths)
+        exp_service = ExperimentService(experiment_id, self.paths, self.console)
         model_config = self.models[model_config_name]
         result_store = ResultStore(exp_service.get_run_path(RunType.PERFORMANCE_ESTIMATION))
 
@@ -140,7 +142,7 @@ class ExperimentRunner:
         """
         Trains a final model on the full training data.
         """
-        exp_service = ExperimentService(experiment_id, self.paths)
+        exp_service = ExperimentService(experiment_id, self.paths, self.console)
         model_config = self.models[model_config_name]
 
         train_df, val_df = exp_service.get_train_val_split(RunType.FINAL_MODEL)
@@ -181,7 +183,9 @@ class ExperimentRunner:
         model_config = SimpleNamespace(**spec_data)
         
         model = self._load_model_from_config(model_config)
-        data_to_predict = pl.read_csv(input_file)
+        
+        exp_service = ExperimentService("", self.paths, self.console)
+        data_to_predict = exp_service._load_csv_with_status(Path(input_file), "Loading data for prediction")
         
         model.predict(model_dir=str(model_path), data_to_predict=data_to_predict, output_file=str(output_file))
         logger.success(f"Predictions saved to {output_file}")

@@ -11,14 +11,15 @@ from mlops.splitting import DataSplitter
 from evaluate import compare_models, evaluate
 from mlops.result_store import ResultStore
 from mlops.runner import ExperimentRunner
+from mlops.experiment_service import ExperimentService, RunType
 
 class Application:
-    def __init__(self, paths_config, models_config):
+    def __init__(self, paths_config, models_config, console=None):
         self.paths = paths_config
         self.models = models_config
-        self.runner = ExperimentRunner(paths_config, models_config)
+        self.console = console or Console()
+        self.runner = ExperimentRunner(paths_config, models_config, self.console)
         self.splitter = DataSplitter()
-        self.console = Console()
 
     def generate_splits(self, experiment_id: str, input_file: str, target_column: str, test_size: float, backtesting_strategy: str, cv_folds: int = 5, backtesting_val_size: float = 0.2, backtesting_test_size: float = 0.2, perf_estimation_val_size: float = 0.2, final_model_val_size: float = 0.05):
         """
@@ -35,7 +36,8 @@ class Application:
 
         logger.info(f"Created directory structure for experiment '{experiment_id}'")
 
-        df = pl.read_csv(input_file)
+        exp_service = ExperimentService(experiment_id, self.paths, self.console)
+        df = exp_service._load_csv_with_status(Path(input_file), "Loading input data")
 
         train_val_df, test_df = self.splitter.split_train_test(df, test_size, target_column)
         if test_df is not None:

@@ -87,8 +87,7 @@ def compare_models(experiment_id: str, output_file: str = None, run_type: str = 
         
         if rt == "backtesting":
             if group_df['fold'].n_unique() > 1: # CV strategy
-                # Polars doesn't have pivot_table exactly like pandas, but has pivot
-                per_fold_df = group_df.pivot(index=['model_name', 'fold'], on=[], values=['accuracy', 'precision', 'recall', 'f1_score'])
+                per_fold_df = group_df.sort(['model_name', 'fold'])
                 logger.info(f"Per-fold results for {rt}:\n{per_fold_df}")
                 
                 logger.info("\nSummary (mean and std across folds):")

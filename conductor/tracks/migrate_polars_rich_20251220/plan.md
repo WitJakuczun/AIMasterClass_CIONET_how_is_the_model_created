@@ -66,7 +66,7 @@ Now that the data layer is efficient, we will make the user experience engaging.
 ## Phase 4: Verification and Cleanup
 Final checks to ensure everything works as expected.
 
-- [ ] Task: Fix and Run All Tests
+- [x] Task: Fix and Run All Tests <!-- id: db7ed97 -->
     - **Description:** Ensure that all unit tests (`tests/`) are compatible with the new Polars data structures.
     - **Technical Details:** Update test data fixtures to be Polars DataFrames if necessary. Run `pytest`.
     - **Verification:** All tests pass.

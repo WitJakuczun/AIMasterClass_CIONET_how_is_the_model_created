@@ -8,10 +8,19 @@
 4. **High Code Coverage:** Aim for >80% code coverage for all modules
 5. **User Experience First:** Every decision should prioritize user experience
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
+7. **Dedicated Branches:** Every new feature or bug fix MUST be developed on a dedicated branch created from a user-selected source.
+8. **Clean Working Directory:** Before switching or creating branches, the working directory MUST be clean (no uncommitted changes).
 
 ## Task Workflow
 
 All tasks follow a strict lifecycle:
+
+### Track/Feature Initialization (Branching)
+
+1. **Initialize Branch:** Before starting work on a new feature or bug fix, a dedicated branch MUST be created.
+2. **Interactive Selection:**
+   - **Ask Source:** The agent MUST ask the user: "Should I use the current branch ([current_branch_name]) as the source for the new branch, or would you like to select a different source branch?"
+   - **Action:** Based on the user's choice, create a new branch with a descriptive name (e.g., `feat/track-name` or `fix/bug-description`) and switch to it.
 
 ### Standard Task Workflow
 
@@ -150,27 +159,19 @@ Before marking any task complete, verify:
 
 ## Development Commands
 
-**AI AGENT INSTRUCTION: This section should be adapted to the project's specific language, framework, and build tools.**
-
 ### Setup
 ```bash
-# Example: Commands to set up the development environment (e.g., install dependencies, configure database)
-# e.g., for a Node.js project: npm install
-# e.g., for a Go project: go mod tidy
+uv sync
 ```
 
 ### Daily Development
 ```bash
-# Example: Commands for common daily tasks (e.g., start dev server, run tests, lint, format)
-# e.g., for a Node.js project: npm run dev, npm test, npm run lint
-# e.g., for a Go project: go run main.go, go test ./..., go fmt ./...
+uv run ruff check .
 ```
 
 ### Before Committing
 ```bash
-# Example: Commands to run all pre-commit checks (e.g., format, lint, type check, run tests)
-# e.g., for a Node.js project: npm run check
-# e.g., for a Go project: make check (if a Makefile exists)
+uv run pytest && uv run ruff check .
 ```
 
 ## Testing Requirements

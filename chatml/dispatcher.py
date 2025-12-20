@@ -46,6 +46,7 @@ class FunctionDispatcher:
             "compare_models": self.app.compare_models,
             "estimate_performance": self.app.estimate_performance,
             "evaluate_prediction": self._evaluate_prediction_wrapper,
+            "visualize_comparison": self.app.visualize_comparison,
         }
 
     def _predict_new_wrapper(self, model_path: str, input_file: str, name: str):

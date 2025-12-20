@@ -18,4 +18,4 @@ A comprehensive demonstration platform for Data Scientists to explore the end-to
 ## Key Features
 - **Multi-Stage Training (Primary Focus):** A rigorous process including cross-validation backtesting and final performance estimation on hold-out sets.
 - **Dynamic Model Configuration:** An extensible system for adding new model architectures or hyperparameter sets via simple JSON configurations.
-- **ChatMLOps Interface:** An experimental natural language interface that allows users to control the ML lifecycle, analyze logs, and query experiment results.
+- **ChatMLOps Interface:** An experimental natural language interface that allows users to control the ML lifecycle, analyze logs, and query experiment results. Accessible via the streamlined `uv run chatml` command.

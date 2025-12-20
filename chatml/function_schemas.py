@@ -97,6 +97,28 @@ tools = {
         "description": "Wyświetla listę wszystkich dostępnych modeli skonfigurowanych w systemie.",
         "parameters": {}
     },
+    "visualize_comparison": {
+        "name": "visualize_comparison",
+        "description": "Generates a bar chart comparing model metrics (e.g., f1_macro, accuracy) for a given experiment and saves it as an image file. Useful for visual analysis of model performance.",
+        "parameters": {
+            "type": "OBJECT",
+            "properties": {
+                "experiment_id": {
+                    "type": "STRING",
+                    "description": "The unique identifier of the experiment (e.g., 'exp001')."
+                },
+                "metric": {
+                    "type": "STRING",
+                    "description": "The metric to compare models on. Defaults to 'f1_macro'. Options: 'accuracy', 'precision_macro', 'recall_macro', 'f1_macro'."
+                },
+                "run_type": {
+                    "type": "STRING",
+                    "description": "The stage of the experiment. Defaults to 'backtesting'. Options: 'backtesting', 'performance_estimation'."
+                }
+            },
+            "required": ["experiment_id"]
+        }
+    },
     "compare_models": {
         "name": "compare_models",
         "description": "Porównuje wyniki różnych modeli w ramach eksperymentu.",

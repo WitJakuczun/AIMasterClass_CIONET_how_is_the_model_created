@@ -17,10 +17,22 @@ All tasks follow a strict lifecycle:
 
 ### Track/Feature Initialization (Branching)
 
-1. **Initialize Branch:** Before starting work on a new feature or bug fix, a dedicated branch MUST be created.
-2. **Interactive Selection:**
+1. **Verify Clean Working Directory:**
+   - Before any branching activity, the agent MUST check for uncommitted changes.
+   - **If uncommitted changes exist:** Present an interactive menu:
+     - **Option 1: Stash changes:** Stash changes with a descriptive message (e.g., "Auto-stash before branching to [new_branch_name]").
+     - **Option 2: Cancel:** Abort the branching process.
+     - **Option 3: Proceed Anyway:** (Strongly discourage, warn about potential conflicts).
+
+2. **Initialize Branch:** After ensuring the working directory is clean (or stashed), a dedicated branch MUST be created.
+
+3. **Interactive Selection:**
    - **Ask Source:** The agent MUST ask the user: "Should I use the current branch ([current_branch_name]) as the source for the new branch, or would you like to select a different source branch?"
    - **Action:** Based on the user's choice, create a new branch with a descriptive name (e.g., `feat/track-name` or `fix/bug-description`) and switch to it.
+
+4. **Post-Branching Stash Management:**
+   - **If changes were stashed in Step 1:** Ask the user: "Would you like to apply the stashed changes to this new branch now, or keep them stashed?"
+   - **Action:** Execute `git stash pop` or leave the stash as-is based on the user's preference.
 
 ### Standard Task Workflow
 

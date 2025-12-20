@@ -31,6 +31,25 @@ Application handles two stages of ML Model life cycle:
 - **uv**: For managing dependencies and the virtual environment.
 
 
+# Development and Code Quality
+
+This project uses **Ruff** for extremely fast linting and code formatting.
+
+## Linting and Formatting
+
+You can run Ruff manually using the following commands:
+
+- **Check for lint errors:** `uv run ruff check .`
+- **Automatically fix lint errors:** `uv run ruff check --fix .`
+- **Format code:** `uv run ruff format .`
+
+## Pre-commit Hooks
+
+To ensure high code quality, this project uses **pre-commit** hooks. Ruff is configured to run automatically on every commit to check for linting issues and apply consistent formatting.
+
+- **Manual run on all files:** `uv run pre-commit run --all-files`
+- **Update hooks:** `uv run pre-commit autoupdate`
+
 # Dataset
 
 The project uses the "Financial Sentiment Analysis" dataset from Kaggle. You can find the dataset [here](https://www.kaggle.com/datasets/sbhatti/financial-sentiment-analysis).

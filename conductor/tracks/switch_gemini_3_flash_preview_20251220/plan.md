@@ -13,5 +13,5 @@
 - [ ] Task: Conductor - User Manual Verification 'Connector Logic' (Protocol in workflow.md)
 
 ## Phase 3: Final Integration & Quality Gate
-- [ ] Task: Run full test suite (`pytest`) and linting (`ruff`)
+- [x] Task: Run full test suite (`pytest`) and linting (`ruff`) e69db5f
 - [ ] Task: Conductor - User Manual Verification 'Final Integration & Quality Gate' (Protocol in workflow.md)

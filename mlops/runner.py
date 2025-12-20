@@ -4,6 +4,7 @@ from pathlib import Path
 import polars as pl
 from loguru import logger
 from evaluate import evaluate
+from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
 import importlib
 import json
 from types import SimpleNamespace
@@ -54,35 +55,49 @@ class ExperimentRunner:
         model_config = self.models[model_config_name]
         result_store = ResultStore(exp_service.get_run_path(RunType.BACKTESTING))
 
-        for fold, (train_df, val_df, test_df) in enumerate(exp_service.get_backtesting_folds()):
-            logger.info(f"--- Backtesting Fold {fold} ---")
-            
-            model_output_dir = Path(self.paths.trained_models) / f"{experiment_id}_backtesting" / f"fold_{fold}" / model_config_name
-            prediction_output_dir = Path(self.paths.predictions) / f"{experiment_id}_backtesting" / f"fold_{fold}" / model_config_name
-            model_output_dir.mkdir(parents=True, exist_ok=True)
-            prediction_output_dir.mkdir(parents=True, exist_ok=True)
+        folds_data = list(exp_service.get_backtesting_folds())
+        num_folds = len(folds_data)
 
-            try:
-                model = self._load_model_from_config(model_config)
-                
-                logger.info("Training model...")
-                model.train(train_dataset=train_df, val_dataset=val_df, hyperparameters=model_config.__dict__, output_dir=str(model_output_dir))
-                self._save_model_spec(model_config, model_output_dir)
-                
-                logger.info("Predicting...")
-                prediction_file = prediction_output_dir / "predictions.csv"
-                model.predict(model_dir=str(model_output_dir), data_to_predict=test_df, output_file=str(prediction_file))
-                
-                logger.info("Evaluating...")
-                ground_truth_file = exp_service.get_backtesting_fold_path(fold)['test']
-                
-                metrics = evaluate(predictions_file=str(prediction_file), ground_truth_file=ground_truth_file)
-                
-                logger.info(f"Metrics for fold {fold}: {metrics}")
-                result_store.save_metrics(fold=fold, model_name=model_config_name, metrics=metrics)
+        with Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TimeRemainingColumn(),
+        ) as progress:
+            backtest_task = progress.add_task(f"[cyan]Backtesting {model_config_name}...", total=num_folds)
 
-            except Exception as e:
-                logger.error(f"Error during backtesting fold {fold}: {e}")
+            for fold, (train_df, val_df, test_df) in enumerate(folds_data):
+                progress.update(backtest_task, description=f"[cyan]Backtesting {model_config_name} (Fold {fold}/{num_folds})")
+                logger.info(f"--- Backtesting Fold {fold} ---")
+                
+                model_output_dir = Path(self.paths.trained_models) / f"{experiment_id}_backtesting" / f"fold_{fold}" / model_config_name
+                prediction_output_dir = Path(self.paths.predictions) / f"{experiment_id}_backtesting" / f"fold_{fold}" / model_config_name
+                model_output_dir.mkdir(parents=True, exist_ok=True)
+                prediction_output_dir.mkdir(parents=True, exist_ok=True)
+
+                try:
+                    model = self._load_model_from_config(model_config)
+                    
+                    logger.info("Training model...")
+                    model.train(train_dataset=train_df, val_dataset=val_df, hyperparameters=model_config.__dict__, output_dir=str(model_output_dir))
+                    self._save_model_spec(model_config, model_output_dir)
+                    
+                    logger.info("Predicting...")
+                    prediction_file = prediction_output_dir / "predictions.csv"
+                    model.predict(model_dir=str(model_output_dir), data_to_predict=test_df, output_file=str(prediction_file))
+                    
+                    logger.info("Evaluating...")
+                    ground_truth_file = exp_service.get_backtesting_fold_path(fold)['test']
+                    
+                    metrics = evaluate(predictions_file=str(prediction_file), ground_truth_file=ground_truth_file)
+                    
+                    logger.info(f"Metrics for fold {fold}: {metrics}")
+                    result_store.save_metrics(fold=fold, model_name=model_config_name, metrics=metrics)
+
+                except Exception as e:
+                    logger.error(f"Error during backtesting fold {fold}: {e}")
+                
+                progress.advance(backtest_task)
 
     def run_performance_estimation(self, experiment_id: str, model_config_name: str):
         """

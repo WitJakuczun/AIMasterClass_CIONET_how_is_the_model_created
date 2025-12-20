@@ -5,6 +5,7 @@ import os
 import random
 from loguru import logger
 from datetime import datetime
+from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
 
 class DataGenerator:
     """
@@ -111,12 +112,23 @@ class DataGenerator:
         counts = self._determine_generation_counts(examples_per_sentiment, distribution_from_file, total_examples)
         
         results = []
-        for sentiment, count in counts.items():
-            logger.info(f"Generating {count} examples for sentiment: '{sentiment}' in language: {lang}")
-            for i in range(count):
-                sentence = self._generate_one_example(sentiment, lang)
-                results.append({"Sentence": sentence, "Sentiment": sentiment})
-                logger.info(f"({i+1}/{count}) Generated for '{sentiment}': {sentence}")
+        total_to_generate = sum(counts.values())
+
+        with Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TimeRemainingColumn(),
+        ) as progress:
+            gen_task = progress.add_task(f"[green]Generating {total_to_generate} examples...", total=total_to_generate)
+
+            for sentiment, count in counts.items():
+                logger.info(f"Generating {count} examples for sentiment: '{sentiment}' in language: {lang}")
+                for i in range(count):
+                    sentence = self._generate_one_example(sentiment, lang)
+                    results.append({"Sentence": sentence, "Sentiment": sentiment})
+                    logger.info(f"({i+1}/{count}) Generated for '{sentiment}': {sentence}")
+                    progress.advance(gen_task)
 
         df = pl.DataFrame(results)
         

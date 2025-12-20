@@ -6,6 +6,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training
 from trl import SFTTrainer
 import torch
+from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
 
 from mlops.model_interface import ModelInterface
 from mlops.prompt_engineering import create_gemma_prompt
@@ -136,16 +137,28 @@ class GemmaModel(ModelInterface):
         # --- 2. Generate Predictions ---
         logger.info(f"Generating predictions for {len(data_to_predict)} sentences...")
         
-        def get_prediction(text):
-            prompt = f"<start_of_turn>user\nOceń sentyment poniższego zdania jako negatywny, neutralny lub pozytywny. Odpowiedz tylko jednym słowem.\nZdanie: {text}<end_of_turn>\n<start_of_turn>model\n"
-            inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-            outputs = model.generate(**inputs, max_new_tokens=5) # Limit tokens to get just the sentiment
-            result = tokenizer.decode(outputs[0], skip_special_tokens=True)
-            # Extract the answer after the model tag
-            return result.split("model\n")[-1].strip()
+        predictions = []
+        with Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TimeRemainingColumn(),
+        ) as progress:
+            predict_task = progress.add_task("[yellow]Predicting with Fine-tuned Gemma...", total=data_to_predict.height)
+
+            for row in data_to_predict.iter_rows(named=True):
+                text = row['Sentence']
+                prompt = f"<start_of_turn>user\nOceń sentyment poniższego zdania jako negatywny, neutralny lub pozytywny. Odpowiedz tylko jednym słowem.\nZdanie: {text}<end_of_turn>\n<start_of_turn>model\n"
+                inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
+                outputs = model.generate(**inputs, max_new_tokens=5) # Limit tokens to get just the sentiment
+                result = tokenizer.decode(outputs[0], skip_special_tokens=True)
+                # Extract the answer after the model tag
+                prediction = result.split("model\n")[-1].strip()
+                predictions.append(prediction)
+                progress.advance(predict_task)
 
         data_to_predict = data_to_predict.with_columns(
-            pl.col("Sentence").map_elements(get_prediction, return_dtype=pl.String).alias("Predicted_Sentiment")
+            pl.Series(name="Predicted_Sentiment", values=predictions)
         )
 
         # --- 3. Save Predictions ---

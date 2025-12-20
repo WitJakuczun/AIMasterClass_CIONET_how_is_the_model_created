@@ -4,7 +4,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 from loguru import logger
 from pathlib import Path
 import re
-from tqdm import tqdm
+from rich.progress import Progress, TextColumn, BarColumn, TaskProgressColumn, TimeRemainingColumn
 
 from mlops.model_interface import ModelInterface
 
@@ -56,24 +56,33 @@ class PromptGemmaModel(ModelInterface):
 
         predictions = []
 
-        for row in tqdm(data_to_predict.iter_rows(named=True), total=data_to_predict.height, desc="Predicting"):
-            text = row['Sentence']
-            prompt = self.prompt_template.format(text_to_analyze=text)
-            
-            inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
-            response = self.model.generate(**inputs, max_new_tokens=5)
-            output_text = self.tokenizer.decode(response[0], skip_special_tokens=True)
-            
-            generated_response = output_text.split(prompt)[-1].strip()
+        with Progress(
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TimeRemainingColumn(),
+        ) as progress:
+            predict_task = progress.add_task("[yellow]Predicting with Gemma...", total=data_to_predict.height)
 
-            match = re.search(r'(positive|negative|neutral)', generated_response, re.IGNORECASE)
-            if match:
-                sentiment = match.group(1).lower()
-            else:
-                print(f"{text=} => {generated_response=}")
-                sentiment = "unknown"
-            
-            predictions.append(sentiment)
+            for row in data_to_predict.iter_rows(named=True):
+                text = row['Sentence']
+                prompt = self.prompt_template.format(text_to_analyze=text)
+                
+                inputs = self.tokenizer(prompt, return_tensors="pt").to(self.device)
+                response = self.model.generate(**inputs, max_new_tokens=5)
+                output_text = self.tokenizer.decode(response[0], skip_special_tokens=True)
+                
+                generated_response = output_text.split(prompt)[-1].strip()
+
+                match = re.search(r'(positive|negative|neutral)', generated_response, re.IGNORECASE)
+                if match:
+                    sentiment = match.group(1).lower()
+                else:
+                    print(f"{text=} => {generated_response=}")
+                    sentiment = "unknown"
+                
+                predictions.append(sentiment)
+                progress.advance(predict_task)
 
         output_df = data_to_predict.with_columns(
             pl.Series(name="Predicted_Sentiment", values=predictions)

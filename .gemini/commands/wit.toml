@@ -1,0 +1,5 @@
+description = "Generate a consise summary of the project"
+
+prompt = """
+Generate a consise summary of the project
+"""

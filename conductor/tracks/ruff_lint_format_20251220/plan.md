@@ -13,7 +13,7 @@
 - [x] Task: Conductor - User Manual Verification 'Initial Codebase Cleanup' (Protocol in workflow.md)
 
 ## Phase 3: Automation & Integration
-- [ ] Task: Create or update `.pre-commit-config.yaml` to include Ruff as a pre-commit hook.
+- [x] Task: Create or update `.pre-commit-config.yaml` to include Ruff as a pre-commit hook. 40112d4
 - [ ] Task: Verify pre-commit integration by staging a change and running `pre-commit run`.
 - [ ] Task: Update `README.md` or documentation with instructions for using Ruff commands.
 - [ ] Task: Conductor - User Manual Verification 'Automation & Integration' (Protocol in workflow.md)

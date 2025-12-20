@@ -3,7 +3,7 @@
 ## Phase 1: Environment Setup & Configuration
 - [x] Task: Add `ruff` to project development dependencies using `uv`. f444b29
 - [x] Task: Define Ruff configuration in `pyproject.toml` (lint rules: E, F, I, D, S; format settings). f5f6d7f
-- [ ] Task: Create a verification test that ensures Ruff configuration is valid and reachable.
+- [x] Task: Create a verification test that ensures Ruff configuration is valid and reachable. 75767c0
 - [ ] Task: Conductor - User Manual Verification 'Environment Setup & Configuration' (Protocol in workflow.md)
 
 ## Phase 2: Initial Codebase Cleanup

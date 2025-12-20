@@ -14,6 +14,6 @@
 
 ## Phase 3: Automation & Integration
 - [x] Task: Create or update `.pre-commit-config.yaml` to include Ruff as a pre-commit hook. 40112d4
-- [ ] Task: Verify pre-commit integration by staging a change and running `pre-commit run`.
+- [x] Task: Verify pre-commit integration by staging a change and running `pre-commit run`. 28db6ca
 - [ ] Task: Update `README.md` or documentation with instructions for using Ruff commands.
 - [ ] Task: Conductor - User Manual Verification 'Automation & Integration' (Protocol in workflow.md)

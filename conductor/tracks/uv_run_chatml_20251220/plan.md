@@ -17,11 +17,11 @@ This phase focuses on updating the project metadata and creating the necessary P
 
 - [x] Task: Conductor - User Manual Verification 'Infrastructure and Entry Point' (Protocol in workflow.md)
 
-## Phase 2: Final Verification and Cleanup
+## Phase 2: Final Verification and Cleanup [checkpoint: c302a63]
 This phase ensures the new command works end-to-end and the environment is synchronized.
 
 - [x] Task: End-to-End Manual Verification 10a9123
     - **Description:** Manually launch the chat using the new command and perform a simple interaction.
     - **Verification:** Execute `uv run chatml`, type "List all available models", and verify the response.
 
-- [ ] Task: Conductor - User Manual Verification 'Final Verification and Cleanup' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Final Verification and Cleanup' (Protocol in workflow.md)

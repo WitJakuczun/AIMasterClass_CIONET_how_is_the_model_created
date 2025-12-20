@@ -51,7 +51,7 @@ Now that the data layer is efficient, we will make the user experience engaging.
     - **Technical Details:** In `mlops/app.py` or the specific command handlers, create a `Table` object, add columns, and add rows. Print via `Console`.
     - **Verification:** Run `uv run cli list-models` and observe the rendered table.
 
-- [ ] Task: Add Progress Bars to Training and Evaluation
+- [x] Task: Add Progress Bars to Training and Evaluation <!-- id: a412825 -->
     - **Description:** Wrap long running loops (like the fold iteration in backtesting or the generation loop) with `rich.progress.track` or `Progress`.
     - **Technical Details:** In `mlops/runner.py`, locate the loops for folds/seeds. Add the progress bar context manager.
     - **Verification:** Run `uv run cli run-backtesting` and see the progress bar in action.

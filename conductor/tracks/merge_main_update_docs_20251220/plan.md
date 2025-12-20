@@ -1,9 +1,9 @@
 # Plan: Merge Main and Update Docs
 
-## Phase 1: Integration & Code Quality
+## Phase 1: Integration & Code Quality [checkpoint: 45d20df]
 - [x] Task: Merge `mlopschat` branch into `main` and resolve conflicts 2ef6142
 - [x] Task: Execute full test suite to ensure stability post-merge 0994fd0
-- [ ] Task: Conductor - User Manual Verification 'Integration & Code Quality' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Integration & Code Quality' (Protocol in workflow.md) 45d20df
 
 ## Phase 2: Documentation Refinement
 - [ ] Task: Update `README.md` with ChatMLOps usage (`uv run chatml`)

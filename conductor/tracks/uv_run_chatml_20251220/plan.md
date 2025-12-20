@@ -1,6 +1,6 @@
 # Track Plan: Enable `uv run chatml` Command
 
-## Phase 1: Infrastructure and Entry Point
+## Phase 1: Infrastructure and Entry Point [checkpoint: 7509159]
 This phase focuses on updating the project metadata and creating the necessary Python wrapper to support the new command.
 
 - [x] Task: Create synchronous wrapper `run_chat` in `chatml/chat.py` c2c132c
@@ -15,7 +15,7 @@ This phase focuses on updating the project metadata and creating the necessary P
     - **Implement:** Edit `pyproject.toml`.
     - **Verification:** Run `uv sync` and then `uv run chatml --help` (or equivalent) to ensure the command is recognized.
 
-- [ ] Task: Conductor - User Manual Verification 'Infrastructure and Entry Point' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Infrastructure and Entry Point' (Protocol in workflow.md)
 
 ## Phase 2: Final Verification and Cleanup
 This phase ensures the new command works end-to-end and the environment is synchronized.

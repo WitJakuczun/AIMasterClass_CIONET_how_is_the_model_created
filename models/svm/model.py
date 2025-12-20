@@ -14,8 +14,7 @@ from mlops.model_interface import ModelInterface
 
 
 class SVMModel(ModelInterface):
-    """A wrapper for the SVM model that implements the ModelInterface.
-    """
+    """A wrapper for the SVM model that implements the ModelInterface."""
 
     def train(
         self,

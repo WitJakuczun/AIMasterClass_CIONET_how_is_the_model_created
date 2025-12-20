@@ -53,8 +53,7 @@ class FunctionDispatcher:
         }
 
     def _predict_new_wrapper(self, model_path: str, input_file: str, name: str):
-        """Wrapper dla predict_new, który generuje brakujące identyfikatory i znaczniki czasu.
-        """
+        """Wrapper dla predict_new, który generuje brakujące identyfikatory i znaczniki czasu."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         prediction_id = f"pred_{timestamp}"
 
@@ -65,8 +64,7 @@ class FunctionDispatcher:
     def _evaluate_prediction_wrapper(
         self, predictions_file: str, ground_truth_file: str, display: bool = True
     ):
-        """Wrapper dla evaluate_prediction, który wyciąga metadane ze ścieżki pliku.
-        """
+        """Wrapper dla evaluate_prediction, który wyciąga metadane ze ścieżki pliku."""
         predictions_path = Path(predictions_file)
         # Zakładamy strukturę katalogów: .../timestamp/name/model_id/predictions.csv
         # Jeśli struktura jest inna, może to wymagać dostosowania

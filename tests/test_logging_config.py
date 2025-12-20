@@ -6,8 +6,7 @@ from mlops import setup_logging
 
 
 def test_setup_logging_configures_rich():
-    """Verifies that setup_logging adds a RichHandler to loguru.
-    """
+    """Verifies that setup_logging adds a RichHandler to loguru."""
     # Setup logging
     try:
         setup_logging()

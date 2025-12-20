@@ -18,8 +18,7 @@ app = typer.Typer()
 
 @app.callback()
 def main(ctx: typer.Context):
-    """Initialize logging before any command.
-    """
+    """Initialize logging before any command."""
     setup_logging()
 
 
@@ -48,8 +47,7 @@ def data_generate(
         str, typer.Option(help="Language for the generated text (e.g., 'pl', 'de')")
     ] = "en",
 ):
-    """Generates new data for sentiment analysis using the Gemma model.
-    """
+    """Generates new data for sentiment analysis using the Gemma model."""
     # Argument validation
     if examples_per_sentiment and distribution_from_file:
         logger.error(
@@ -112,8 +110,7 @@ def generate_splits(
         float, typer.Option(help="Validation set size for final model training split")
     ] = 0.1,
 ):
-    """Generates a complete set of data splits for an experiment.
-    """
+    """Generates a complete set of data splits for an experiment."""
     application.generate_splits(
         experiment_id=experiment_id,
         input_file=input_file,
@@ -135,8 +132,7 @@ def run_backtesting(
         str, typer.Option(help="Name of the model configuration to use")
     ],
 ):
-    """Runs the backtesting phase for a given experiment and model.
-    """
+    """Runs the backtesting phase for a given experiment and model."""
     application.run_backtesting(experiment_id, model_config_name)
 
 
@@ -147,8 +143,7 @@ def estimate_performance(
         str, typer.Option(help="Name of the model configuration to use")
     ],
 ):
-    """Runs the performance estimation phase for a given experiment and model.
-    """
+    """Runs the performance estimation phase for a given experiment and model."""
     application.estimate_performance(experiment_id, model_config_name)
 
 
@@ -162,8 +157,7 @@ def train_final_model(
         str, typer.Option(help="Directory to save the trained model")
     ],
 ):
-    """Trains a final model on the full training data.
-    """
+    """Trains a final model on the full training data."""
     application.train_final_model(experiment_id, model_config_name, model_output_dir)
 
 
@@ -179,8 +173,7 @@ def predict_new(
         str, typer.Option(help="Unique ID for the prediction run")
     ] = None,
 ):
-    """Makes predictions on new data using a trained model.
-    """
+    """Makes predictions on new data using a trained model."""
     if prediction_id is None:
         from datetime import datetime
 
@@ -203,8 +196,7 @@ def evaluate_prediction(
     ],
     display: Annotated[bool, typer.Option(help="Display metrics in the terminal")],
 ):
-    """Evaluates predictions against ground truth data.
-    """
+    """Evaluates predictions against ground truth data."""
     predictions_path = Path(predictions_file)
     model_id = predictions_path.parent.parent.name
     name = predictions_path.parent.parent.parent.name
@@ -233,22 +225,19 @@ def compare_models(
         ),
     ] = None,
 ):
-    """Compares the performance of different models for a given experiment.
-    """
+    """Compares the performance of different models for a given experiment."""
     application.compare_models(experiment_id, output_file, run_type)
 
 
 @app.command()
 def list_models():
-    """Lists all available models.
-    """
+    """Lists all available models."""
     application.list_models()
 
 
 @app.command()
 def list_experiments():
-    """Lists all available experiments with their statistics.
-    """
+    """Lists all available experiments with their statistics."""
     application.list_experiments()
 
 

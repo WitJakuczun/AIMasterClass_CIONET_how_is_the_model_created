@@ -4,8 +4,7 @@ from sklearn.model_selection import StratifiedKFold, train_test_split
 
 
 class DataSplitter:
-    """A class to handle various data splitting tasks for machine learning experiments.
-    """
+    """A class to handle various data splitting tasks for machine learning experiments."""
 
     def split_train_test(self, df: pl.DataFrame, test_size: float, stratify_on: str):
         """Splits a dataframe into a training set and a test set.

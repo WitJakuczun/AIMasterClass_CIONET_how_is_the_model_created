@@ -29,8 +29,7 @@ def to_dict(struct: Struct) -> dict:
 
 
 async def process_model_response(response, connector, dispatcher, console):
-    """Przetwarza odpowiedź modelu, obsługując rekurencyjnie wywołania funkcji.
-    """
+    """Przetwarza odpowiedź modelu, obsługując rekurencyjnie wywołania funkcji."""
     if not response:
         console.print(
             Panel(
@@ -113,8 +112,7 @@ async def process_model_response(response, connector, dispatcher, console):
 
 
 async def main():
-    """Główna funkcja uruchamiająca interfejs czatu MLOps.
-    """
+    """Główna funkcja uruchamiająca interfejs czatu MLOps."""
     console = Console()
     console.print(
         Panel(
@@ -168,8 +166,7 @@ async def main():
 
 
 def run_chat():
-    """Synchronous entry point for the chatml script.
-    """
+    """Synchronous entry point for the chatml script."""
     asyncio.run(main())
 
 

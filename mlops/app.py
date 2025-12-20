@@ -36,8 +36,7 @@ class Application:
         perf_estimation_val_size: float = 0.2,
         final_model_val_size: float = 0.05,
     ):
-        """Generates a complete set of data splits for an experiment.
-        """
+        """Generates a complete set of data splits for an experiment."""
         base_dir = Path(self.paths.experiments) / experiment_id
         backtesting_dir = base_dir / "backtesting"
         perf_estimation_dir = base_dir / "performance_estimation"
@@ -160,8 +159,7 @@ class Application:
         run_type: str = "backtesting",
         metric: str = "f1_score",
     ) -> str:
-        """Generuje wykres porównujący modele w ramach eksperymentu.
-        """
+        """Generuje wykres porównujący modele w ramach eksperymentu."""
         print(f"Generowanie wizualizacji dla: {experiment_id}, {run_type}, {metric}")
 
         # 1. Ustalenie ścieżek

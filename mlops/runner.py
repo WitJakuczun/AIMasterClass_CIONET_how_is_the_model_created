@@ -25,8 +25,7 @@ class ExperimentRunner:
         self.console = console or Progress().console
 
     def _load_model_from_config(self, model_config) -> ModelInterface:
-        """Loads a model dynamically from a given module path and class name.
-        """
+        """Loads a model dynamically from a given module path and class name."""
         try:
             module_path = model_config.module_path
             class_name = model_config.class_name
@@ -53,8 +52,7 @@ class ExperimentRunner:
         logger.info(f"Model spec saved to {spec_path}")
 
     def run_backtesting(self, experiment_id: str, model_config_name: str):
-        """Runs the backtesting phase for a given experiment and model.
-        """
+        """Runs the backtesting phase for a given experiment and model."""
         exp_service = ExperimentService(experiment_id, self.paths, self.console)
         model_config = self.models[model_config_name]
         result_store = ResultStore(exp_service.get_run_path(RunType.BACKTESTING))
@@ -136,8 +134,7 @@ class ExperimentRunner:
                 progress.advance(backtest_task)
 
     def run_performance_estimation(self, experiment_id: str, model_config_name: str):
-        """Runs the performance estimation phase for a given experiment and model.
-        """
+        """Runs the performance estimation phase for a given experiment and model."""
         exp_service = ExperimentService(experiment_id, self.paths, self.console)
         model_config = self.models[model_config_name]
         result_store = ResultStore(
@@ -200,8 +197,7 @@ class ExperimentRunner:
     def train_final_model(
         self, experiment_id: str, model_config_name: str, model_output_dir: str
     ):
-        """Trains a final model on the full training data.
-        """
+        """Trains a final model on the full training data."""
         exp_service = ExperimentService(experiment_id, self.paths, self.console)
         model_config = self.models[model_config_name]
 
@@ -236,8 +232,7 @@ class ExperimentRunner:
         timestamp: str,
         name: str,
     ):
-        """Makes predictions on new data using a trained model.
-        """
+        """Makes predictions on new data using a trained model."""
         model_path = Path(model_path)
         model_id = model_path.name
         output_dir = (

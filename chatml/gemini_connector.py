@@ -91,8 +91,7 @@ class GeminiConnector:
             return None
 
     async def send_message(self, message: str):
-        """Wysyła wiadomość do modelu w ramach aktywnej sesji czatu.
-        """
+        """Wysyła wiadomość do modelu w ramach aktywnej sesji czatu."""
         if not self.model:
             self.get_model()
 

@@ -23,8 +23,7 @@ from mlops.prompt_engineering import create_gemma_prompt
 
 
 class GemmaModel(ModelInterface):
-    """A wrapper for the Gemma model that implements the ModelInterface.
-    """
+    """A wrapper for the Gemma model that implements the ModelInterface."""
 
     def train(
         self,

@@ -7,8 +7,7 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support
 
 
 def evaluate(predictions_file: str, ground_truth_file: str) -> dict:
-    """Evaluates predictions and returns a dictionary of metrics.
-    """
+    """Evaluates predictions and returns a dictionary of metrics."""
     # Load predictions and ground truth
     predictions_df = pl.read_csv(predictions_file)
     ground_truth_df = pl.read_csv(ground_truth_file)

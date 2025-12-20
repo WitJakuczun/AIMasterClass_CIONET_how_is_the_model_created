@@ -48,3 +48,8 @@ package = true
 [tool.setuptools]
 packages = ["mlops", "models", "data", "chatml"]
 py-modules = ["main", "config", "models_config", "evaluate"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.10",
+]

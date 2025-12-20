@@ -2,6 +2,8 @@ from pathlib import Path
 import glob
 import polars as pl
 from loguru import logger
+from rich.console import Console
+from rich.table import Table
 from mlops.visualization import plot_model_comparison
 from mlops.terminal_utils import display_image
 
@@ -16,6 +18,7 @@ class Application:
         self.models = models_config
         self.runner = ExperimentRunner(paths_config, models_config)
         self.splitter = DataSplitter()
+        self.console = Console()
 
     def generate_splits(self, experiment_id: str, input_file: str, target_column: str, test_size: float, backtesting_strategy: str, cv_folds: int = 5, backtesting_val_size: float = 0.2, backtesting_test_size: float = 0.2, perf_estimation_val_size: float = 0.2, final_model_val_size: float = 0.05):
         """
@@ -182,7 +185,6 @@ class Application:
         return compare_models(experiment_id, output_file, run_type)
 
     def list_experiments(self):
-        logger.info("Available experiments:")
         experiment_paths = glob.glob(str(Path(self.paths.experiments) / "exp*"))
         
         if not experiment_paths:
@@ -192,8 +194,7 @@ class Application:
         for exp_path_str in experiment_paths:
             exp_path = Path(exp_path_str)
             experiment_id = exp_path.name
-            print(f"\n--- Experiment: {experiment_id} ---")
-
+            
             backtesting_path = exp_path / "backtesting"
             cv_path = backtesting_path / "cv"
             train_val_path = backtesting_path / "train-val"
@@ -203,34 +204,49 @@ class Application:
             if cv_path.exists():
                 exp_type = "Cross-Validation"
                 fold_files = glob.glob(str(cv_path / "train_fold_*.csv"))
-                folds = len(fold_files)
+                folds = str(len(fold_files))
             elif train_val_path.exists():
                 exp_type = "Train/Validation"
-                folds = 1
+                folds = "1"
 
-            print(f"  Type: {exp_type}")
-            print(f"  Folds: {folds}")
+            table = Table(title=f"Experiment: {experiment_id}")
+            table.add_column("Property", style="bold")
+            table.add_column("Value")
+            
+            table.add_row("Type", exp_type)
+            table.add_row("Folds", folds)
 
             backtesting_results_store = ResultStore(str(backtesting_path))
             backtesting_results = backtesting_results_store.load_results()
             
             if backtesting_results:
-                print("  Backtesting Runs:")
+                bt_runs = []
                 for fold, models in backtesting_results.items():
                     model_names = list(models.keys())
-                    print(f"    - Fold {fold}: Models run - {', '.join(model_names)}")
+                    bt_runs.append(f"Fold {fold}: {', '.join(model_names)}")
+                table.add_row("Backtesting Runs", "\n".join(bt_runs))
 
             perf_estimation_path = exp_path / "performance_estimation"
             perf_results_store = ResultStore(str(perf_estimation_path))
             perf_results = perf_results_store.load_results()
 
             if perf_results:
-                print("  Performance Estimation Runs:")
+                pe_runs = []
                 for fold, models in perf_results.items():
                     model_names = list(models.keys())
-                    print(f"    - Models run: {', '.join(model_names)}")
+                    pe_runs.append(f"{', '.join(model_names)}")
+                table.add_row("Perf Estimation Runs", "\n".join(pe_runs))
+
+            self.console.print(table)
+            self.console.print("")
 
     def list_models(self):
-        logger.info("Available models:")
-        for name in self.models.keys():
-            print(f"- {name}")
+        table = Table(title="Available Models")
+        table.add_column("Model Name", style="cyan", no_wrap=True)
+        table.add_column("Class", style="magenta")
+        table.add_column("Module", style="green")
+
+        for name, config in self.models.items():
+            table.add_row(name, config.class_name, config.module_path)
+        
+        self.console.print(table)

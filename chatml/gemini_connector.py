@@ -5,6 +5,7 @@ import google.generativeai as genai
 from rich.console import Console
 
 from chatml.function_schemas import tools
+from config import DEFAULT_CHAT_MODEL
 
 
 class GeminiConnector:
@@ -73,9 +74,19 @@ class GeminiConnector:
                 )
                 return None
 
+            # Attempt to find the model specified in config
             selected_model = next(
-                (m for m in chat_models if "flash" in m.name), chat_models[0]
+                (m for m in chat_models if DEFAULT_CHAT_MODEL in m.name), None
             )
+
+            if not selected_model:
+                self.console.print(
+                    f"[yellow]Warning: Configured model '{DEFAULT_CHAT_MODEL}' not found. Falling back to dynamic selection.[/yellow]"
+                )
+                selected_model = next(
+                    (m for m in chat_models if "flash" in m.name), chat_models[0]
+                )
+
             model_name = selected_model.name
             self.console.print(f"[blue]Using model: {model_name}[/blue]")
 

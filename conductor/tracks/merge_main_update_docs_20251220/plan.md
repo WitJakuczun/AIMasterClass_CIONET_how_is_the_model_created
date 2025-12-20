@@ -8,7 +8,7 @@
 ## Phase 2: Documentation Refinement
 - [x] Task: Update `README.md` with ChatMLOps usage (`uv run chatml`) 71803c3
 - [x] Task: Update `conductor/product.md` feature status 8771c9b
-- [ ] Task: Update `conductor/tech-stack.md` with new dependencies (e.g., polars, rich)
+- [x] Task: Update `conductor/tech-stack.md` with new dependencies (e.g., polars, rich) 5b3295a
 - [ ] Task: Conductor - User Manual Verification 'Documentation Refinement' (Protocol in workflow.md)
 
 ## Phase 3: Finalization & Remote Sync

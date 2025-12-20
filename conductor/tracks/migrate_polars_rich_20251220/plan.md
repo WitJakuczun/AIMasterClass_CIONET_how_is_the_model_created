@@ -1,6 +1,6 @@
 # Track Plan: Migrate to Polars and Rich
 
-## Phase 1: Setup and Dependency Management
+## Phase 1: Setup and Dependency Management [checkpoint: 5ce4b89]
 This phase focuses on preparing the environment by swapping the core data handling dependencies and setting up the visual foundation.
 
 - [x] Task: Update Dependencies (Pandas -> Polars, Add Rich) <!-- id: d2c1c3c -->

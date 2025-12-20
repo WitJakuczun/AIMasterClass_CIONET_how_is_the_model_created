@@ -46,7 +46,7 @@ This phase involves the deep refactoring of the data processing logic. We will t
 ## Phase 3: UI Enhancement (Rich)
 Now that the data layer is efficient, we will make the user experience engaging.
 
-- [ ] Task: Enhance `list-models` and `list-experiments` with Rich Tables
+- [x] Task: Enhance `list-models` and `list-experiments` with Rich Tables <!-- id: 2fe5e8b -->
     - **Description:** Replace standard text printing with `rich.table.Table`.
     - **Technical Details:** In `mlops/app.py` or the specific command handlers, create a `Table` object, add columns, and add rows. Print via `Console`.
     - **Verification:** Run `uv run cli list-models` and observe the rendered table.

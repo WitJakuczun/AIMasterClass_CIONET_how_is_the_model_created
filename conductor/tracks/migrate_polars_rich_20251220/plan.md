@@ -31,7 +31,7 @@ This phase involves the deep refactoring of the data processing logic. We will t
         *Decision:* Use boundary conversion for now to minimize risk, i.e., `df.to_pandas()` -> `sklearn` -> `df[train_idx]`.
     - **Verification:** Run `uv run cli generate-splits` and check if train/val/test splits are created correctly.
 
-- [ ] Task: Refactor Experiment Service (`mlops/experiment_service.py`)
+- [x] Task: Refactor Experiment Service (`mlops/experiment_service.py`) <!-- id: 1267aff -->
     - **Description:** Update how the service loads data for experiments. It should return Polars DataFrames.
     - **Technical Details:** Change `pd.read_csv` to `pl.read_csv`.
     - **Verification:** Run existing tests `tests/test_experiment.py`. They will likely fail; this task prepares the ground for fixing them.

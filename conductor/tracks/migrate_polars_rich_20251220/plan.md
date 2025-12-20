@@ -71,7 +71,7 @@ Final checks to ensure everything works as expected.
     - **Technical Details:** Update test data fixtures to be Polars DataFrames if necessary. Run `pytest`.
     - **Verification:** All tests pass.
 
-- [~] Task: Final Manual Demo Run
+- [x] Task: Final Manual Demo Run <!-- id: 336523c -->
     - **Description:** Execute the full "Happy Path" demo script to ensure the presentation flow is smooth.
     - **Technical Details:**
         1. `data-generate`

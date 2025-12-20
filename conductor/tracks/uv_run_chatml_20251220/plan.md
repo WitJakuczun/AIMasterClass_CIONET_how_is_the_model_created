@@ -9,7 +9,7 @@ This phase focuses on updating the project metadata and creating the necessary P
     - **Implement:** Add `run_chat()` to `chatml/chat.py`.
     - **Verification:** Run `pytest tests/test_chat_entry.py`.
 
-- [ ] Task: Update `pyproject.toml` with `chatml` script
+- [x] Task: Update `pyproject.toml` with `chatml` script d09ee73
     - **Description:** Add the `chatml` entry point to the `[project.scripts]` section.
     - **Write Tests:** Add a test case to `tests/test_chat_entry.py` that verifies the entry point string is correctly formatted.
     - **Implement:** Edit `pyproject.toml`.

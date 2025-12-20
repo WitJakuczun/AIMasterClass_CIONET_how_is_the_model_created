@@ -1,0 +1,17 @@
+# Plan: Merge Main and Update Docs
+
+## Phase 1: Integration & Code Quality
+- [x] Task: Merge `mlopschat` branch into `main` and resolve conflicts 2ef6142
+- [ ] Task: Execute full test suite to ensure stability post-merge
+- [ ] Task: Conductor - User Manual Verification 'Integration & Code Quality' (Protocol in workflow.md)
+
+## Phase 2: Documentation Refinement
+- [ ] Task: Update `README.md` with ChatMLOps usage (`uv run chatml`)
+- [ ] Task: Update `conductor/product.md` feature status
+- [ ] Task: Update `conductor/tech-stack.md` with new dependencies (e.g., polars, rich)
+- [ ] Task: Conductor - User Manual Verification 'Documentation Refinement' (Protocol in workflow.md)
+
+## Phase 3: Finalization & Remote Sync
+- [ ] Task: Final project build and sanity check
+- [ ] Task: Push changes to `origin/main`
+- [ ] Task: Conductor - User Manual Verification 'Finalization & Remote Sync' (Protocol in workflow.md)

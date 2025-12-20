@@ -28,6 +28,9 @@ dependencies = [
     "seaborn>=0.13.2",
     "tqdm>=4.66.1",
     "google-generativeai>=0.8.5",
+    "term-image>=0.7.0",
+    "polars>=1.0.0",
+    "rich>=13.0.0",
 ]
 
 [project.optional-dependencies]

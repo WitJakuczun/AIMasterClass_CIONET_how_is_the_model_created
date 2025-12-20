@@ -11,7 +11,7 @@
 - [x] Task: Update `conductor/tech-stack.md` with new dependencies (e.g., polars, rich) 5b3295a
 - [x] Task: Conductor - User Manual Verification 'Documentation Refinement' (Protocol in workflow.md) 88d830b
 
-## Phase 3: Finalization & Remote Sync
+## Phase 3: Finalization & Remote Sync [checkpoint: 081507c]
 - [x] Task: Final project build and sanity check 4c13a7e
 - [x] Task: Push changes to `origin/main` 05134d3
-- [ ] Task: Conductor - User Manual Verification 'Finalization & Remote Sync' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Finalization & Remote Sync' (Protocol in workflow.md) 081507c

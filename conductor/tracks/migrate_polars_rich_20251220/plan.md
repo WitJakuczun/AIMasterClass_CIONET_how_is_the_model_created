@@ -18,7 +18,7 @@ This phase focuses on preparing the environment by swapping the core data handli
 ## Phase 2: Data Layer Migration (Pandas -> Polars)
 This phase involves the deep refactoring of the data processing logic. We will tackle this module by module to ensure stability.
 
-- [ ] Task: Refactor Data Generator (`data/generator.py`)
+- [x] Task: Refactor Data Generator (`data/generator.py`) <!-- id: 2a3a624 -->
     - **Description:** Update the data generation logic to use Polars for creating and manipulating the initial synthetic datasets.
     - **Technical Details:** Replace `pd.DataFrame` with `pl.DataFrame`. Use `pl.concat` instead of `pd.concat`. Update CSV writing.
     - **Verification:** Run `uv run cli data-generate --name test_gen --examples-per-sentiment 10` and verify the output CSV is valid.

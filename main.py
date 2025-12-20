@@ -10,8 +10,16 @@ from models_config import MODELS
 # Module imports
 from mlops.app import Application
 from data.generator import DataGenerator
+from mlops import setup_logging
 
 app = typer.Typer()
+
+@app.callback()
+def main(ctx: typer.Context):
+    """
+    Initialize logging before any command.
+    """
+    setup_logging()
 
 # Initialize the application with configuration
 application = Application(paths_config=paths, models_config=MODELS)

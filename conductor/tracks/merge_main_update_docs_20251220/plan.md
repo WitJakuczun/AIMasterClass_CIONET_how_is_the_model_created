@@ -6,7 +6,7 @@
 - [x] Task: Conductor - User Manual Verification 'Integration & Code Quality' (Protocol in workflow.md) 45d20df
 
 ## Phase 2: Documentation Refinement
-- [ ] Task: Update `README.md` with ChatMLOps usage (`uv run chatml`)
+- [x] Task: Update `README.md` with ChatMLOps usage (`uv run chatml`) 71803c3
 - [ ] Task: Update `conductor/product.md` feature status
 - [ ] Task: Update `conductor/tech-stack.md` with new dependencies (e.g., polars, rich)
 - [ ] Task: Conductor - User Manual Verification 'Documentation Refinement' (Protocol in workflow.md)

@@ -31,7 +31,7 @@ class RobertaDataPreprocessor(PipelineStep):
 
         # Map Sentiment to label ID
         train_dataset = train_dataset.with_columns(
-            pl.col("Sentiment").replace(label2id).alias("label")
+            pl.col("Sentiment").replace(label2id).cast(pl.Int64).alias("label")
         )
 
         model_name = hyperparameters.get("model_name", "roberta-base")
@@ -65,7 +65,7 @@ class RobertaDataPreprocessor(PipelineStep):
         if val_dataset is not None:
             logger.info("Preprocessing validation data...")
             val_dataset = val_dataset.with_columns(
-                pl.col("Sentiment").replace(label2id).alias("label")
+                pl.col("Sentiment").replace(label2id).cast(pl.Int64).alias("label")
             )
             hf_val_dataset = Dataset.from_polars(val_dataset)
             tokenized_val_dataset = hf_val_dataset.map(tokenize_function, batched=True)
